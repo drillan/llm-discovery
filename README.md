@@ -128,10 +128,7 @@ asyncio.run(main())
 
 ## Documentation
 
-For detailed documentation, visit our documentation site or see:
-
-- [Quick Start Guide](docs/quickstart.md)
-- [Installation Guide](docs/installation.md)
+For detailed documentation, visit [https://llm-discovery.readthedocs.io/](https://llm-discovery.readthedocs.io/)
 
 ## Development
 
