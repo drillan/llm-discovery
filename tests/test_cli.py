@@ -138,13 +138,19 @@ class TestCLIExport:
         assert result.exit_code != 0
 
     def test_export_without_cache(self, runner, tmp_path, monkeypatch):
-        """Test export when cache doesn't exist."""
+        """Test export when cache doesn't exist and prebuilt data is not available."""
+        from unittest.mock import patch
+
+        from llm_discovery.services.prebuilt_loader import PrebuiltDataLoader
+
         cache_dir = tmp_path / "empty_cache"
         cache_dir.mkdir()
         monkeypatch.setenv("LLM_DISCOVERY_CACHE_DIR", str(cache_dir))
 
-        result = runner.invoke(app, ["export", "--format", "json"])
-        # Should fail when cache doesn't exist
+        # Mock prebuilt data loader to return unavailable
+        with patch.object(PrebuiltDataLoader, "is_available", return_value=False):
+            result = runner.invoke(app, ["export", "--format", "json"])
+        # Should fail when cache doesn't exist and prebuilt data unavailable
         assert result.exit_code == 1
 
 
@@ -629,12 +635,18 @@ class TestCLIList:
     def test_list_without_cache_shows_error(
         self, runner: CliRunner, temp_cache_dir
     ) -> None:
-        """Test list command shows error when cache doesn't exist (FR-025)."""
-        result = runner.invoke(app, ["list"])
+        """Test list command shows error when cache doesn't exist and prebuilt data unavailable (FR-025)."""
+        from unittest.mock import patch
+
+        from llm_discovery.services.prebuilt_loader import PrebuiltDataLoader
+
+        # Mock prebuilt data loader to return unavailable
+        with patch.object(PrebuiltDataLoader, "is_available", return_value=False):
+            result = runner.invoke(app, ["list"])
         assert result.exit_code == 1
         assert (
-            "No cached data available" in result.output
-            or "no cached data available" in result.output.lower()
+            "No data available" in result.output
+            or "no data available" in result.output.lower()
         )
         assert (
             "llm-discovery update" in result.output

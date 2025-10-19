@@ -72,7 +72,7 @@ def list_command() -> None:
                     # Display prebuilt metadata
                     metadata = service.prebuilt_loader.get_metadata()
                     console.print(
-                        f"\n[dim]Data Source: PREBUILT[/dim]"
+                        "\n[dim]Data Source: PREBUILT[/dim]"
                     )
                     console.print(
                         f"[dim]Generated At: {metadata.generated_at.strftime('%Y-%m-%d %H:%M UTC')}[/dim]"

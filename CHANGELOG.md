@@ -7,35 +7,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-### Added
-- New `update` command for fetching and caching models from all providers
-  - Displays summary: provider counts, total models, and cache path
-  - Supports all error handling from original `list` command (API failures, partial failures, authentication errors)
-  - Automatically recovers from corrupted cache by fetching fresh data
-  - `--detect-changes` option for tracking model additions and removals over time
-    - Detects added and removed models since last snapshot
-    - Saves changes to `changes.json` and `CHANGELOG.md`
-    - Automatically cleans up snapshots older than 30 days
-    - Creates baseline snapshot on first run
-
-### Changed
-- **BREAKING CHANGE**: `list` command is now read-only (cache display only)
-  - No longer fetches from APIs automatically
-  - Shows clear error message when cache doesn't exist: "No cached data available. Please run 'llm-discovery update' first to fetch model data."
-  - Requires running `update` command first to populate cache
-  - `--detect-changes` option moved from `list` to `update` command
-
-### Migration Guide
-If you were using `llm-discovery list` to fetch and display models:
-```bash
-# Old workflow
-llm-discovery list
-
-# New workflow
-llm-discovery update  # Fetch and cache models
-llm-discovery list    # Display cached models
-```
-
 ## [0.1.0] - 2025-10-19
 
 ### Added
@@ -47,11 +18,32 @@ llm-discovery list    # Display cached models
 - Snapshot-based versioning with 30-day retention policy
 - TOML-based caching for offline mode support
 - Python 3.13+ support with modern async/await patterns
+- **Prebuilt data support** - Access model information without API keys
+  - Remote prebuilt data fetching from GitHub repository
+  - HTTP client with timeout strategy (HEAD: 3s, GET: 10s)
+  - Comprehensive error handling (HTTPError, URLError, JSONDecodeError)
+- **Data source transparency** - Track data origin and freshness
+  - Data source type tracking (API/PREBUILT)
+  - Data age display with visual warnings (>24h: yellow, >7d: red)
+  - Source metadata in all export formats
 
 #### CLI Commands
-- `llm-discovery list` - List all available models from configured providers
+- `llm-discovery update` - Fetch and cache models from all providers
+  - Displays summary: provider counts, total models, and cache path
+  - Supports all error handling (API failures, partial failures, authentication errors)
+  - Automatically recovers from corrupted cache by fetching fresh data
+  - `--detect-changes` option for tracking model additions and removals over time
+    - Detects added and removed models since last snapshot
+    - Saves changes to `changes.json` and `CHANGELOG.md`
+    - Automatically cleans up snapshots older than 30 days
+    - Creates baseline snapshot on first run
+- `llm-discovery list` - Display cached models (read-only)
+  - `--source` option for explicit data source selection (api/prebuilt/auto)
+  - Shows data source information with age warnings
+  - Clear error message when cache doesn't exist
 - `llm-discovery export` - Export model data in multiple formats
-- `--detect-changes` flag for tracking model additions and removals
+  - Supports both API and prebuilt data sources
+  - Includes data source metadata in all formats
 - Rich terminal output with beautiful tables
 
 #### Python API
@@ -66,6 +58,11 @@ llm-discovery list    # Display cached models
 - `Snapshot` - Complete multi-provider snapshot with UUID tracking
 - `Change` - Model change record for version tracking
 - `Cache` - TOML-based cache structure with metadata
+- `CacheMetadata` - Extended with data source tracking (v1.0.0 → v1.1.0)
+  - `data_source_type` - Tracks API or PREBUILT origin
+  - `data_source_timestamp` - Records when data was fetched
+  - Backward compatible with optional fields
+- `DataSourceInfo` - Data source information with computed age
 
 #### Services
 - `DiscoveryService` - Orchestrates parallel provider fetching with fail-fast error handling
@@ -73,6 +70,9 @@ llm-discovery list    # Display cached models
 - `SnapshotService` - UUID-based snapshot management with retention policy
 - `ChangeDetector` - Detects model additions and removals between snapshots
 - `ChangelogGenerator` - Generates human-readable Markdown changelogs
+- `PrebuiltDataService` - Fetches prebuilt model data from remote repository
+  - HTTP client with timeout strategy
+  - Automatic validation and error handling
 
 #### Provider Support
 - **OpenAI**: Full API integration with model metadata
@@ -96,6 +96,12 @@ llm-discovery list    # Display cached models
 - Example scripts in `examples/` directory
 - API reference contracts
 - CLI interface documentation
+- **Sphinx documentation system** (docs/)
+  - Installation guide, quickstart, and tutorials
+  - Complete CLI and API reference
+  - Advanced guides and troubleshooting
+  - Architecture and design documentation
+  - Built with Sphinx 8.0+, myst-parser 4.0+, sphinx_rtd_theme 3.0+
 
 ### Technical Details
 
@@ -118,10 +124,35 @@ llm-discovery list    # Display cached models
 - Cache-first operation for offline usage
 - Efficient TOML serialization
 
+### Changed
+
+- **BREAKING CHANGE**: `list` command is now read-only (cache display only)
+  - No longer fetches from APIs automatically
+  - Shows clear error message when cache doesn't exist: "No cached data available. Please run 'llm-discovery update' first to fetch model data."
+  - Requires running `update` command first to populate cache
+  - New `--source` option for explicit data source selection (api/prebuilt/auto)
+
+### Migration Guide
+
+If you were using `llm-discovery list` to fetch and display models:
+
+```bash
+# Old workflow
+llm-discovery list
+
+# New workflow
+llm-discovery update  # Fetch and cache models
+llm-discovery list    # Display cached models
+
+# Or use prebuilt data (no API keys required)
+llm-discovery list --source prebuilt
+```
+
 ### Known Limitations
 
 - Google Vertex AI requires GCP service account credentials
 - Anthropic models use manual data (no official API yet)
 - Change detection requires at least one previous snapshot
+- Prebuilt data may not include the latest models (updated periodically)
 
 [0.1.0]: https://github.com/drillan/llm-discovery/releases/tag/v0.1.0

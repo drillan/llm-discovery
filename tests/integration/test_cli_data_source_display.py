@@ -97,12 +97,19 @@ class TestCLIDataSourceDisplay:
         assert "12" in result.stdout  # Age in hours
 
     def test_cli_displays_api_data_source_info(
-        self, runner: CliRunner, sample_models: list[Model], api_data_source: DataSourceInfo
+        self, runner: CliRunner, sample_models: list[Model], api_data_source: DataSourceInfo, tmp_path, monkeypatch
     ):
         """Given API data, CLI displays source type and current timestamp.
 
         This test verifies FR-040: API data source display.
         """
+        # Create a cache file to ensure has_cache=True
+        cache_dir = tmp_path / "cache"
+        cache_dir.mkdir()
+        cache_file = cache_dir / "models_cache.toml"
+        cache_file.write_text("[metadata]\nversion = \"1.0.0\"\n\n[[models]]\n")
+        monkeypatch.setenv("LLM_DISCOVERY_CACHE_DIR", str(cache_dir))
+
         with (
             patch.object(
                 DiscoveryService, "get_cached_models", return_value=sample_models
@@ -123,12 +130,19 @@ class TestCLIDataSourceDisplay:
         # The exact format depends on implementation
 
     def test_cli_warns_about_old_data(
-        self, runner: CliRunner, sample_models: list[Model], old_data_source: DataSourceInfo
+        self, runner: CliRunner, sample_models: list[Model], old_data_source: DataSourceInfo, tmp_path, monkeypatch
     ):
         """Given data older than 24h, CLI displays warning message.
 
         This test verifies FR-041: Staleness warning requirement.
         """
+        # Create a cache file to ensure has_cache=True
+        cache_dir = tmp_path / "cache"
+        cache_dir.mkdir()
+        cache_file = cache_dir / "models_cache.toml"
+        cache_file.write_text("[metadata]\nversion = \"1.0.0\"\n\n[[models]]\n")
+        monkeypatch.setenv("LLM_DISCOVERY_CACHE_DIR", str(cache_dir))
+
         with (
             patch.object(
                 DiscoveryService, "get_cached_models", return_value=sample_models
@@ -179,12 +193,19 @@ class TestCLIDataSourceDisplay:
         assert "10" in result.stdout or "240" in result.stdout  # Days or hours
 
     def test_cli_without_data_source_info_fallback(
-        self, runner: CliRunner, sample_models: list[Model]
+        self, runner: CliRunner, sample_models: list[Model], tmp_path, monkeypatch
     ):
         """Given no data source info available, CLI still displays models.
 
         This test verifies graceful degradation when data source info unavailable.
         """
+        # Create a cache file to ensure has_cache=True
+        cache_dir = tmp_path / "cache"
+        cache_dir.mkdir()
+        cache_file = cache_dir / "models_cache.toml"
+        cache_file.write_text("[metadata]\nversion = \"1.0.0\"\n\n[[models]]\n")
+        monkeypatch.setenv("LLM_DISCOVERY_CACHE_DIR", str(cache_dir))
+
         with (
             patch.object(
                 DiscoveryService, "get_cached_models", return_value=sample_models
