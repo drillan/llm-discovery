@@ -12,13 +12,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Displays summary: provider counts, total models, and cache path
   - Supports all error handling from original `list` command (API failures, partial failures, authentication errors)
   - Automatically recovers from corrupted cache by fetching fresh data
+  - `--detect-changes` option for tracking model additions and removals over time
+    - Detects added and removed models since last snapshot
+    - Saves changes to `changes.json` and `CHANGELOG.md`
+    - Automatically cleans up snapshots older than 30 days
+    - Creates baseline snapshot on first run
 
 ### Changed
 - **BREAKING CHANGE**: `list` command is now read-only (cache display only)
   - No longer fetches from APIs automatically
   - Shows clear error message when cache doesn't exist: "No cached data available. Please run 'llm-discovery update' first to fetch model data."
   - Requires running `update` command first to populate cache
-  - Removed `--detect-changes` option (moved to `update` command in future release)
+  - `--detect-changes` option moved from `list` to `update` command
 
 ### Migration Guide
 If you were using `llm-discovery list` to fetch and display models:

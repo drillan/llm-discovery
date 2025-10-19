@@ -56,6 +56,9 @@ uvx llm-discovery update
 # Display cached models in a table
 uvx llm-discovery list
 
+# Detect changes from previous snapshot
+uvx llm-discovery update --detect-changes
+
 # Export to JSON
 uvx llm-discovery export --format json --output models.json
 ```
