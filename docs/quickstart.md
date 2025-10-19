@@ -7,7 +7,48 @@ description: Quick start guide for llm-discovery
 
 This guide walks you through setting up llm-discovery and running your first commands.
 
-## Environment Variables
+## Zero Configuration Quick Start
+
+Try `llm-discovery` instantly without any API keys using prebuilt model data (updated daily):
+
+```bash
+# Display models using prebuilt data (no API keys required)
+$ uvx llm-discovery list
+```
+
+Expected output:
+
+```
+Provider       Model ID              Model Name
+─────────────────────────────────────────────────
+OpenAI         gpt-4                 GPT-4
+OpenAI         gpt-3.5-turbo         GPT-3.5 Turbo
+Google         gemini-pro            Gemini Pro
+Anthropic      claude-3-opus         Claude 3 Opus
+
+Total models: 42
+
+Data Source: PREBUILT
+Last Updated: 2025-10-19 00:00 UTC
+Age: 10.5 hours
+```
+
+The data source information shows:
+- **Data Source**: Whether data comes from `API` (real-time) or `PREBUILT` (daily snapshot)
+- **Last Updated**: When the data was generated
+- **Age**: How old the data is in hours
+
+:::{note}
+Prebuilt data is automatically updated daily at 00:00 UTC via GitHub Actions.
+Maximum data age is 24 hours. For real-time data, configure API keys (see below).
+:::
+
+:::{warning}
+If data is older than 24 hours, a yellow warning will appear.
+If data is older than 7 days, a red warning will appear with a recommendation to run `update`.
+:::
+
+## Environment Variables (For Real-time Data)
 
 Set up API keys for the LLM providers you want to monitor.
 
@@ -101,6 +142,35 @@ $ uvx llm-discovery export --format markdown --output models.md
 
 # Export to TOML
 $ uvx llm-discovery export --format toml --output models.toml
+```
+
+**Data Source Metadata in Exports**:
+
+All export formats include data source information:
+- **JSON**: `metadata.data_source`, `metadata.source_timestamp`, `metadata.data_age_hours`
+- **CSV**: `data_source` and `source_timestamp` columns
+- **Markdown**: "Data Source" section header
+- **YAML/TOML**: Standard model data (no additional metadata)
+
+Example JSON export with data source info:
+
+```json
+{
+  "metadata": {
+    "version": "1.0",
+    "generated_at": "2025-10-19T10:30:00Z",
+    "total_models": 42,
+    "providers": ["openai", "google", "anthropic"],
+    "data_source": "prebuilt",
+    "source_timestamp": "2025-10-19T00:00:00Z",
+    "data_age_hours": 10.5
+  },
+  "models": {
+    "openai": [...],
+    "google": [...],
+    "anthropic": [...]
+  }
+}
 ```
 
 ## Python API Basic Usage
