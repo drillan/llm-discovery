@@ -18,6 +18,8 @@ LLM model discovery and tracking system for real-time monitoring of available mo
 
 ### Method 1: uvx (No Installation Required - Recommended)
 
+> **Note**: `uvx` requires [uv](https://docs.astral.sh/uv/getting-started/installation/) to be installed.
+
 ```bash
 # Display models using prebuilt data (no API keys required)
 uvx llm-discovery list
@@ -130,8 +132,6 @@ For detailed documentation, visit our documentation site or see:
 
 - [Quick Start Guide](docs/quickstart.md)
 - [Installation Guide](docs/installation.md)
-- [API Reference](specs/001-llm-model-discovery/contracts/python-api.md) (Technical Contract)
-- [CLI Reference](specs/001-llm-model-discovery/contracts/cli-interface.md) (Technical Contract)
 
 ## Development
 
