@@ -7,7 +7,7 @@ import typer
 
 from llm_discovery.cli.output import console, display_error
 from llm_discovery.constants import SUPPORTED_EXPORT_FORMATS
-from llm_discovery.exceptions import CacheNotFoundError
+from llm_discovery.exceptions import CacheCorruptedError
 from llm_discovery.models import Model
 from llm_discovery.models.config import Config
 from llm_discovery.services.discovery import DiscoveryService
@@ -55,13 +55,28 @@ def export_command(
 
         service = DiscoveryService(config)
 
-        # Get models from cache
-        try:
-            models = service.get_cached_models()
-        except CacheNotFoundError:
+        # FR-001: Explicit data source selection (cache or prebuilt)
+        cache_file = config.llm_discovery_cache_dir / "models_cache.toml"
+        has_cache = cache_file.exists()
+        has_prebuilt = service.prebuilt_loader.is_available()
+
+        if has_cache:
+            try:
+                models = service.get_cached_models()
+            except CacheCorruptedError as e:
+                display_error(
+                    "Cache file is corrupted.",
+                    f"Error: {e}\n\n"
+                    "Please run 'llm-discovery update' to refresh the cache.",
+                )
+                raise typer.Exit(1)
+        elif has_prebuilt:
+            # Use prebuilt data when cache not available
+            models = service.prebuilt_loader.load_models()
+        else:
             display_error(
-                "No cached data available.",
-                "Please run 'llm-discovery list' first to fetch model data.",
+                "No data available.",
+                "Please configure API keys and run 'llm-discovery update' to fetch model data.",
             )
             raise typer.Exit(1)
 
