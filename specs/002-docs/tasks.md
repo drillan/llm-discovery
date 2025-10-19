@@ -165,9 +165,9 @@ description: "Task list for Documentation System implementation"
 - [ ] T066 [P] Review all docs/ files for MyST syntax compliance (Admonitions format, code block syntax)
 - [ ] T067 [P] Review all docs/ files for writing style compliance (objective language, no exaggerations, minimal bold)
 - [ ] T068 [P] Verify all code samples are executable (copy-paste test for Python examples)
-- [ ] T069 Run full build test: make clean && make html with zero warnings
-- [ ] T070 Run full link check: make linkcheck with zero broken links
-- [ ] T071 Run pytest tests/test_docs.py and verify all tests pass
+- [x] T069 Run full build test: make clean && make html with zero warnings
+- [x] T070 Run full link check: make linkcheck with zero broken links
+- [x] T071 Run pytest tests/test_docs.py and verify all tests pass
 - [ ] T072 Manual browser test: verify all pages display correctly in Chrome, Firefox, Safari
 - [ ] T073 Manual mobile test: verify responsive design on mobile devices (iOS, Android)
 - [ ] T074 Final contracts integrity check: verify all docs/ content matches specs/001-llm-model-discovery/contracts/ for 100% consistency
