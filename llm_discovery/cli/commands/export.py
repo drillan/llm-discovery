@@ -69,12 +69,18 @@ def export_command(
             display_error("No models found in cache.")
             raise typer.Exit(1)
 
+        # Get data source info
+        try:
+            data_source_info = service.get_data_source_info()
+        except Exception:
+            data_source_info = None
+
         # Export based on format
         exporters: dict[str, Callable[[list[Model]], str]] = {
-            "json": export_json,
-            "csv": export_csv,
+            "json": lambda m: export_json(m, data_source_info=data_source_info),
+            "csv": lambda m: export_csv(m, data_source_info=data_source_info),
             "yaml": export_yaml,
-            "markdown": export_markdown,
+            "markdown": lambda m: export_markdown(m, data_source_info=data_source_info),
             "toml": export_toml,
         }
 

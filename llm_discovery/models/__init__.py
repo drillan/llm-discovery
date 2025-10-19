@@ -1,5 +1,11 @@
 """Data models for llm-discovery."""
 
+from llm_discovery.models.prebuilt import (
+    DataSourceInfo,
+    DataSourceType,
+    PrebuiltDataMetadata,
+    PrebuiltModelData,
+)
 from llm_discovery.models.provider import (
     Cache,
     CacheMetadata,
@@ -28,4 +34,8 @@ __all__ = [
     "ChangeType",
     "Cache",
     "CacheMetadata",
+    "PrebuiltDataMetadata",
+    "PrebuiltModelData",
+    "DataSourceType",
+    "DataSourceInfo",
 ]

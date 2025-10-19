@@ -3,14 +3,19 @@
 import asyncio
 from datetime import UTC, datetime
 
-from llm_discovery.exceptions import PartialFetchError, ProviderFetchError
-from llm_discovery.models import FetchStatus, Model, ProviderSnapshot
+from llm_discovery.exceptions import (
+    PartialFetchError,
+    PrebuiltDataNotFoundError,
+    ProviderFetchError,
+)
+from llm_discovery.models import DataSourceInfo, FetchStatus, Model, ProviderSnapshot
 from llm_discovery.models.config import Config
 from llm_discovery.services.cache import CacheService
 from llm_discovery.services.change_detector import ChangeDetector
 from llm_discovery.services.fetchers.anthropic import AnthropicFetcher
 from llm_discovery.services.fetchers.google import GoogleFetcher
 from llm_discovery.services.fetchers.openai import OpenAIFetcher
+from llm_discovery.services.prebuilt_loader import PrebuiltDataLoader
 from llm_discovery.services.snapshot import SnapshotService
 
 
@@ -29,6 +34,7 @@ class DiscoveryService:
             config.llm_discovery_cache_dir, config.llm_discovery_retention_days
         )
         self.change_detector = ChangeDetector()
+        self.prebuilt_loader = PrebuiltDataLoader()
 
     async def fetch_all_models(self) -> list[ProviderSnapshot]:
         """Fetch models from all providers in parallel.
@@ -125,10 +131,101 @@ class DiscoveryService:
         """
         return self.cache_service.get_cached_models()
 
-    def save_to_cache(self, providers: list[ProviderSnapshot]) -> None:
-        """Save provider snapshots to cache.
+    def get_data_source_info(self) -> "DataSourceInfo | None":
+        """Get data source information from cache.
+
+        Returns:
+            DataSourceInfo object if available, None otherwise
+
+        Raises:
+            CacheNotFoundError: If cache doesn't exist
+            CacheCorruptedError: If cache is corrupted
+        """
+        return self.cache_service.get_data_source_info()
+
+    def save_to_cache(
+        self,
+        providers: list[ProviderSnapshot],
+        data_source_type: str | None = None,
+        data_source_timestamp: datetime | None = None,
+    ) -> None:
+        """Save provider snapshots to cache with data source info.
 
         Args:
             providers: Provider snapshots to cache
+            data_source_type: Data source type (api or prebuilt)
+            data_source_timestamp: Data source timestamp
         """
-        self.cache_service.save_cache(providers)
+        self.cache_service.save_cache(
+            providers,
+            data_source_type=data_source_type,
+            data_source_timestamp=data_source_timestamp,
+        )
+
+    def has_api_keys(self) -> bool:
+        """Check if any API keys are configured.
+
+        Returns:
+            True if at least one API key is configured
+        """
+        return self.config.has_any_api_keys()
+
+    def fetch_or_load_models(self) -> list[Model]:
+        """Fetch from API if keys available, otherwise load prebuilt data.
+
+        Returns:
+            List of Model objects
+
+        Raises:
+            PrebuiltDataNotFoundError: If no API keys and prebuilt data not available
+        """
+        if self.has_api_keys():
+            # Try API fetch (this will raise if all fail)
+            # For synchronous version, we raise an error suggesting async usage
+            msg = (
+                "API keys are configured. Please use fetch_or_load_models_async() "
+                "for fetching from APIs."
+            )
+            raise RuntimeError(msg)
+        else:
+            # No API keys, use prebuilt data
+            if self.prebuilt_loader.is_available():
+                return self.prebuilt_loader.load_models()
+            raise PrebuiltDataNotFoundError(
+                "No API keys configured and no prebuilt data available"
+            )
+
+    async def fetch_or_load_models_async(self) -> list[Model]:
+        """Fetch from API if keys available, otherwise load prebuilt data (async).
+
+        Returns:
+            List of Model objects
+
+        Raises:
+            PrebuiltDataNotFoundError: If no API keys and prebuilt data not available
+            PartialFetchError: If some API providers fail
+            ProviderFetchError: If all API providers fail
+        """
+        if self.has_api_keys():
+            # Try API fetch
+            try:
+                snapshots = await self.fetch_all_models()
+                # Extract all models from snapshots
+                models: list[Model] = []
+                for snapshot in snapshots:
+                    models.extend(snapshot.models)
+                return models
+            except (PartialFetchError, ProviderFetchError):
+                # If API fails and prebuilt available, use prebuilt
+                if self.prebuilt_loader.is_available():
+                    # Note: In production, we might want to log this
+                    return self.prebuilt_loader.load_models()
+                # No prebuilt data available, re-raise API error
+                raise
+        else:
+            # No API keys, use prebuilt data
+            if self.prebuilt_loader.is_available():
+                return self.prebuilt_loader.load_models()
+            raise PrebuiltDataNotFoundError(
+                "No API keys configured and no prebuilt data available"
+            )

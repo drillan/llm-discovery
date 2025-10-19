@@ -102,3 +102,46 @@ class SnapshotNotFoundError(LLMDiscoveryError):
         """
         self.snapshot_id = snapshot_id
         super().__init__(f"Snapshot not found: {snapshot_id}")
+
+
+class PrebuiltDataNotFoundError(LLMDiscoveryError):
+    """Prebuilt data not accessible from remote URL."""
+
+    def __init__(self, message: str = "Prebuilt data file not found"):
+        """Initialize PrebuiltDataNotFoundError.
+
+        Args:
+            message: Error message describing the issue
+        """
+        self.message = message
+        super().__init__(self.message)
+
+
+class PrebuiltDataCorruptedError(LLMDiscoveryError):
+    """Prebuilt data file is corrupted or cannot be parsed."""
+
+    def __init__(self, message: str, original_error: Exception | None = None):
+        """Initialize PrebuiltDataCorruptedError.
+
+        Args:
+            message: Error message describing the issue
+            original_error: Original exception that caused this error
+        """
+        self.message = message
+        self.original_error = original_error
+        super().__init__(self.message)
+
+
+class PrebuiltDataValidationError(LLMDiscoveryError):
+    """Prebuilt data does not match expected schema."""
+
+    def __init__(self, message: str, validation_errors: list[str]):
+        """Initialize PrebuiltDataValidationError.
+
+        Args:
+            message: Error message describing the issue
+            validation_errors: List of validation error messages
+        """
+        self.message = message
+        self.validation_errors = validation_errors
+        super().__init__(self.message)

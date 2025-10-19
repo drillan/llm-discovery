@@ -1,13 +1,16 @@
 """Markdown exporter for documentation."""
 
-from llm_discovery.models import Model
+from llm_discovery.models import DataSourceInfo, Model
 
 
-def export_markdown(models: list[Model]) -> str:
+def export_markdown(
+    models: list[Model], *, data_source_info: DataSourceInfo | None = None
+) -> str:
     """Export models to Markdown format (documentation optimized).
 
     Args:
         models: List of models to export
+        data_source_info: Optional data source information
 
     Returns:
         Markdown string
@@ -24,6 +27,19 @@ def export_markdown(models: list[Model]) -> str:
         f"**Total Models**: {len(models)}",
         "",
     ]
+
+    # Add data source info header (FR-044)
+    if data_source_info:
+        lines.extend(
+            [
+                "## Data Source",
+                "",
+                f"- **Source Type**: {data_source_info.source_type.value.upper()}",
+                f"- **Last Updated**: {data_source_info.timestamp.strftime('%Y-%m-%d %H:%M UTC')}",
+                f"- **Data Age**: {data_source_info.age_hours:.1f} hours",
+                "",
+            ]
+        )
 
     # Group by provider
     providers_dict: dict[str, list[Model]] = {}

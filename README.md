@@ -4,9 +4,12 @@ LLM model discovery and tracking system for real-time monitoring of available mo
 
 ## Features
 
+- **Zero-Configuration Quick Start**: Use prebuilt model data without API keys (max 24h old)
 - **Real-time Model Discovery**: Fetch available models from multiple LLM providers
+- **Automatic Data Source Switching**: Seamlessly switches between API and prebuilt data
 - **Multi-format Export**: Export model data in JSON, CSV, YAML, Markdown, and TOML formats
 - **Change Detection**: Track model additions and removals over time
+- **Data Source Transparency**: See whether data comes from API or prebuilt sources with timestamps
 - **CI/CD Integration**: Easy integration with GitHub Actions and other CI/CD systems
 - **Python API**: Use as a library in your Python applications
 - **Offline Mode**: Cache-first operation for offline usage
@@ -31,7 +34,21 @@ pip install llm-discovery
 
 ## Quick Start
 
-### Environment Variables
+### Without API Keys (Zero Configuration)
+
+Try `llm-discovery` instantly without any API keys using prebuilt model data (updated daily):
+
+```bash
+# Display models using prebuilt data (no API keys required)
+uvx llm-discovery list
+
+# Export prebuilt data
+uvx llm-discovery export --format json --output models.json
+```
+
+The data source and timestamp are displayed in the output, showing whether data comes from API or prebuilt sources.
+
+### With API Keys (Real-time Data)
 
 Set up API keys for the providers you want to use:
 

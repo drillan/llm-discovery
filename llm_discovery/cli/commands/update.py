@@ -46,8 +46,12 @@ def update_command(
             console.print("[dim]Fetching models from APIs...[/dim]")
             providers = asyncio.run(service.fetch_all_models())
 
-            # Save to cache
-            service.save_to_cache(providers)
+            # Save to cache with data source info
+            service.save_to_cache(
+                providers,
+                data_source_type="api",
+                data_source_timestamp=datetime.now(UTC),
+            )
 
             # Build summary output (FR-024 compliant)
             provider_counts = []

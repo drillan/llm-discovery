@@ -8,7 +8,7 @@ import tomli_w
 
 from llm_discovery.constants import TOML_CACHE_VERSION
 from llm_discovery.exceptions import CacheCorruptedError, CacheNotFoundError
-from llm_discovery.models import Cache, CacheMetadata, Model, ProviderSnapshot
+from llm_discovery.models import Cache, CacheMetadata, DataSourceInfo, Model, ProviderSnapshot
 
 
 class CacheService:
@@ -23,11 +23,18 @@ class CacheService:
         self.cache_dir = cache_dir
         self.cache_file = cache_dir / "models_cache.toml"
 
-    def save_cache(self, providers: list[ProviderSnapshot]) -> None:
+    def save_cache(
+        self,
+        providers: list[ProviderSnapshot],
+        data_source_type: str | None = None,
+        data_source_timestamp: datetime | None = None,
+    ) -> None:
         """Save cache to TOML file.
 
         Args:
             providers: List of provider snapshots to cache
+            data_source_type: Data source type (api or prebuilt)
+            data_source_timestamp: Data source timestamp
 
         Raises:
             IOError: If cache file cannot be written
@@ -53,19 +60,33 @@ class CacheService:
             created_at = now
 
         metadata = CacheMetadata(
-            version=TOML_CACHE_VERSION, created_at=created_at, last_updated=now
+            version=TOML_CACHE_VERSION,
+            created_at=created_at,
+            last_updated=now,
+            data_source_type=data_source_type,
+            data_source_timestamp=data_source_timestamp,
         )
 
         # Create cache object
         cache = Cache(metadata=metadata, providers=providers)
 
         # Convert to dict for TOML serialization
+        metadata_dict = {
+            "version": cache.metadata.version,
+            "created_at": cache.metadata.created_at.isoformat(),
+            "last_updated": cache.metadata.last_updated.isoformat(),
+        }
+
+        # Add optional data source fields
+        if cache.metadata.data_source_type is not None:
+            metadata_dict["data_source_type"] = cache.metadata.data_source_type
+        if cache.metadata.data_source_timestamp is not None:
+            metadata_dict["data_source_timestamp"] = (
+                cache.metadata.data_source_timestamp.isoformat()
+            )
+
         cache_dict = {
-            "metadata": {
-                "version": cache.metadata.version,
-                "created_at": cache.metadata.created_at.isoformat(),
-                "last_updated": cache.metadata.last_updated.isoformat(),
-            },
+            "metadata": metadata_dict,
             "providers": [
                 {
                     "provider_name": p.provider_name,
@@ -166,3 +187,46 @@ class CacheService:
         for provider in providers:
             models.extend(provider.models)
         return models
+
+    def get_data_source_info(self) -> "DataSourceInfo | None":
+        """Get data source information from cache metadata.
+
+        Returns:
+            DataSourceInfo object if available, None otherwise
+
+        Raises:
+            CacheNotFoundError: If cache doesn't exist
+            CacheCorruptedError: If cache is corrupted
+        """
+        if not self.cache_file.exists():
+            raise CacheNotFoundError(f"Cache file not found: {self.cache_file}")
+
+        try:
+            with open(self.cache_file, "rb") as f:
+                cache_dict = tomllib.load(f)
+
+            metadata = cache_dict.get("metadata", {})
+            data_source_type = metadata.get("data_source_type")
+            data_source_timestamp = metadata.get("data_source_timestamp")
+
+            # Return None if data source info not available (backward compatibility)
+            if data_source_type is None or data_source_timestamp is None:
+                return None
+
+            from llm_discovery.models import DataSourceInfo, DataSourceType
+
+            return DataSourceInfo(
+                source_type=DataSourceType(data_source_type),
+                timestamp=datetime.fromisoformat(data_source_timestamp),
+                provider_name="cache",
+            )
+
+        except tomllib.TOMLDecodeError as e:
+            raise CacheCorruptedError(
+                cache_path=str(self.cache_file), parse_error=str(e)
+            ) from e
+        except (KeyError, ValueError, TypeError) as e:
+            raise CacheCorruptedError(
+                cache_path=str(self.cache_file),
+                parse_error=f"Invalid cache structure: {str(e)}",
+            ) from e

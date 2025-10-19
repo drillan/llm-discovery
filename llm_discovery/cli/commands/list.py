@@ -55,6 +55,40 @@ def list_command() -> None:
             table = create_models_table(models)
             console.print(table)
             console.print(f"\n[bold]Total models: {len(models)}[/bold]")
+
+            # Display data source information (FR-040)
+            try:
+                data_source_info = service.get_data_source_info()
+                if data_source_info:
+                    console.print(
+                        f"\n[dim]Data Source: {data_source_info.source_type.value.upper()}[/dim]"
+                    )
+                    console.print(
+                        f"[dim]Last Updated: {data_source_info.timestamp.strftime('%Y-%m-%d %H:%M UTC')}[/dim]"
+                    )
+                    console.print(
+                        f"[dim]Age: {data_source_info.age_hours:.1f} hours[/dim]"
+                    )
+
+                    # Warning for old data (>24h) (FR-041)
+                    if data_source_info.age_hours > 24:
+                        if data_source_info.age_hours > 168:  # 7 days
+                            console.print(
+                                f"\n[red bold]⚠ Warning: Data is very old ({data_source_info.age_hours/24:.1f} days).[/red bold]"
+                            )
+                            console.print(
+                                "[red]Consider running 'llm-discovery update' to refresh data.[/red]"
+                            )
+                        else:
+                            console.print(
+                                f"\n[yellow]⚠ Warning: Data is {data_source_info.age_hours:.1f} hours old.[/yellow]"
+                            )
+                            console.print(
+                                "[yellow]Consider running 'llm-discovery update' for fresher data.[/yellow]"
+                            )
+            except Exception:
+                # Gracefully degrade if data source info not available
+                pass
         else:
             console.print("[yellow]No models found.[/yellow]")
 

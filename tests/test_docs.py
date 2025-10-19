@@ -3,8 +3,6 @@
 import subprocess
 from pathlib import Path
 
-import pytest
-
 
 def test_docs_build():
     """Verify documentation builds without errors.
@@ -14,7 +12,7 @@ def test_docs_build():
     """
     result = subprocess.run(
         ["sphinx-build", "-W", "-b", "html", "docs", "docs/_build/html"],
-        capture_output=True,
+        check=False, capture_output=True,
         text=True,
         cwd=Path(__file__).parent.parent,
     )
@@ -29,7 +27,7 @@ def test_docs_no_warnings():
     """
     result = subprocess.run(
         ["sphinx-build", "-W", "-b", "html", "docs", "docs/_build/html"],
-        capture_output=True,
+        check=False, capture_output=True,
         text=True,
         cwd=Path(__file__).parent.parent,
     )
