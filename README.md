@@ -16,6 +16,10 @@ LLM model discovery and tracking system for real-time monitoring of available mo
 ### Method 1: uvx (No Installation Required - Recommended)
 
 ```bash
+# Fetch and cache models
+uvx llm-discovery update
+
+# Display cached models
 uvx llm-discovery list
 ```
 
@@ -46,14 +50,14 @@ export GOOGLE_APPLICATION_CREDENTIALS="/path/to/gcp-credentials.json"
 ### Basic Usage
 
 ```bash
-# List all models
+# Fetch and cache models from all providers
+uvx llm-discovery update
+
+# Display cached models in a table
 uvx llm-discovery list
 
 # Export to JSON
 uvx llm-discovery export --format json --output models.json
-
-# Detect changes
-uvx llm-discovery list --detect-changes
 ```
 
 ### Python API

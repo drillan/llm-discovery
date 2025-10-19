@@ -1,6 +1,5 @@
 """Main CLI application."""
 
-import sys
 from importlib.metadata import PackageNotFoundError, version
 
 import typer
@@ -8,6 +7,7 @@ from rich.console import Console
 
 from llm_discovery.cli.commands.export import export_command
 from llm_discovery.cli.commands.list import list_command
+from llm_discovery.cli.commands.update import update_command
 
 app = typer.Typer(
     name="llm-discovery",
@@ -50,6 +50,7 @@ def main(
 
 
 # Register commands
+app.command(name="update")(update_command)
 app.command(name="list")(list_command)
 app.command(name="export")(export_command)
 

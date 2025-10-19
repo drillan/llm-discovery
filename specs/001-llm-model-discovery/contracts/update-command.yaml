@@ -1,0 +1,121 @@
+# CLI Contract: llm-discovery update
+
+command: llm-discovery update
+
+description: |
+  Fetch model data from all configured providers (OpenAI, Google, Anthropic) and save to local cache.
+  This command performs WRITE operations only and does not display model lists in table format.
+  Responsibility: Cache update (Write operation) - Article XII (Destructive Refactoring) compliance.
+
+options:
+  --detect-changes:
+    type: boolean
+    required: false
+    default: false
+    description: |
+      Detect changes from previous snapshot and display added/removed models.
+      Save changes to changes.json and append to CHANGELOG.md.
+      Clean up old snapshots (default: 30 days retention).
+
+output:
+  success_normal:
+    format: "Provider counts / Total / Cache path"
+    example: "OpenAI: 15, Google: 20, Anthropic: 7 / Total: 42 / Cached to: ~/.cache/llm-discovery/models_cache.toml"
+    components:
+      - provider_counts: "OpenAI: 15, Google: 20, Anthropic: 7"
+      - total: "Total: 42"
+      - cache_path: "Cached to: ~/.cache/llm-discovery/models_cache.toml"
+
+  success_with_changes:
+    format: "Change summary + Details + Cache info"
+    example: |
+      Changes detected!
+
+      Added models (3):
+        openai/gpt-4.5
+        google/gemini-2.0
+        anthropic/claude-3.5-opus
+
+      Removed models (1):
+        openai/gpt-3.5-turbo-0301
+
+      Details saved to:
+        - ~/.cache/llm-discovery/changes.json
+        - ~/.cache/llm-discovery/CHANGELOG.md
+
+      Total models: 45 / Cached to: ~/.cache/llm-discovery/models_cache.toml
+
+  success_no_changes:
+    format: "No changes message + Cache info"
+    example: |
+      No changes detected.
+
+      Total models: 42 / Cached to: ~/.cache/llm-discovery/models_cache.toml
+
+  success_first_snapshot:
+    format: "Baseline creation message + Cache info"
+    example: |
+      No previous snapshot found. Saving current state as baseline.
+      Next run with --detect-changes will detect changes from this baseline.
+
+      Snapshot ID: 3fa85f64-5717-4562-b3fc-2c963f66afa6
+
+      Total models: 42 / Cached to: ~/.cache/llm-discovery/models_cache.toml
+
+error_outputs:
+  api_failure:
+    message: "Failed to fetch models from {provider_name} API.\n\nCause: {cause}\n\nSuggested actions:\n  1. Check your internet connection\n  2. Verify API keys are set correctly\n  3. Check provider status pages\n  4. Retry the command later"
+    exit_code: 1
+
+  partial_failure:
+    message: "Partial failure during model fetch.\n\nSuccessful providers: {successful_providers}\nFailed providers: {failed_providers}\n\nTo ensure data consistency, processing has been aborted.\nPlease resolve the issue with the failed provider and retry."
+    exit_code: 1
+
+  authentication_failure:
+    message: "Authentication failed for {provider_name}.\n\nDetails: {details}\n\nPlease check your API keys and credentials."
+    exit_code: 2
+
+  cache_corrupted_with_recovery:
+    message: "Warning: Cache file is corrupted. Fetching fresh data from APIs..."
+    note: "Proceeds to fetch from APIs (auto-recovery in update command)"
+
+exit_codes:
+  0: Success
+  1: General error (API failure, partial failure, cache write error)
+  2: Authentication error
+
+environment_variables:
+  required_for_openai:
+    - OPENAI_API_KEY
+  required_for_google_ai_studio:
+    - GOOGLE_API_KEY
+  required_for_vertex_ai:
+    - GOOGLE_GENAI_USE_VERTEXAI: "true"
+    - GOOGLE_APPLICATION_CREDENTIALS: "/path/to/service-account-key.json"
+  optional:
+    - LLM_DISCOVERY_CACHE_DIR: "~/.cache/llm-discovery"
+    - LLM_DISCOVERY_RETENTION_DAYS: "30"
+
+requirements:
+  FR-024: Update command provides cache update functionality (Write operation only)
+  FR-026: Update command supports --detect-changes option
+  FR-017: API failure handling (fail-fast, no fallback)
+  FR-018: Partial failure handling (fail-fast, no partial success)
+  C002: Error bypass prohibition
+  C011: Primary Data Non-Assumption Principle
+
+examples:
+  - command: "llm-discovery update"
+    description: "Fetch models from all providers and cache"
+    output: "OpenAI: 15, Google: 20, Anthropic: 7 / Total: 42 / Cached to: ~/.cache/llm-discovery/models_cache.toml"
+
+  - command: "llm-discovery update --detect-changes"
+    description: "Fetch models and detect changes from previous snapshot"
+    output: |
+      Changes detected!
+
+      Added models (2):
+        openai/gpt-4.5
+        google/gemini-2.0
+
+      Total models: 44 / Cached to: ~/.cache/llm-discovery/models_cache.toml

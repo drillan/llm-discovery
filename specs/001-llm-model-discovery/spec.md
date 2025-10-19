@@ -27,24 +27,36 @@
 
 - Q: pyproject.tomlのバージョン管理方針 → A: 静的バージョン（pyproject.tomlに直接記述、手動更新）。シンプルで予測可能、レビュー可能なバージョン管理を実現し、uvxとの互換性を確保します。リリースプロセスは「バージョン更新→コミット→タグ→リリース」の順で行います。
 
+- Q: `update`コマンドの基本的な責任範囲をどのように定義しますか？ → A: キャッシュ更新に責任を限定し、表示機能は完全に削除する。責任の分離原則（Single Responsibility Principle）を徹底し、`update`=Write操作、`list`=Read操作として明確に区別する。業界標準（apt update、brew update等）との一貫性を保つ。
+
+- Q: `update`コマンドが成功時に表示するサマリー情報の具体的な内容は何ですか？ → A: モデル総数 + プロバイダー別モデル数 + キャッシュパス（例: "OpenAI: 15, Google: 20, Anthropic: 7 / Total: 42 / Cached to: ~/.cache/..."）。ユーザーが更新の成果を即座に確認でき、トラブルシューティング時にキャッシュの場所が分かる必要十分な情報を提供する。
+
+- Q: `update --detect-changes`で変更が検出された場合、画面に表示する情報の詳細レベルはどの程度ですか？ → A: 変更タイプ別のカウント + 各変更のモデルID/名前をグループ化して表示（例: "Added models (3): openai/gpt-4.5, google/gemini-2.0, ..."）。変更の概要を素早く把握でき、詳細も確認できるバランスの良い出力を提供する。CI/CDログでも読みやすく、手動確認時にも十分な情報を提供する。
+
+- Q: `update`コマンドで特定のプロバイダーのみを更新するオプション（例: `--provider openai`）を提供しますか？ → A: Phase 1では提供せず、将来的な拡張として検討する。MVP段階では基本的なワークフロー（全プロバイダー一括更新）を安定させることを優先し、特定プロバイダーのみの更新は高度な使用例として需要を見極めてからPhase 2以降で追加する。
+
+- Q: `update`コマンドがAPIからデータを取得中、ユーザーへのプログレス表示（進行状況）をどのように行いますか？ → A: プログレス表示なし（API取得完了後にサマリーのみ表示）。非同期並行取得により数秒で完了する想定のため、シンプルさを優先し、実装の複雑さを避ける。API取得が完了した時点でプロバイダー別モデル数、総数、キャッシュパスを表示する。
+
 ## User Scenarios & Testing *(mandatory)*
 
-### User Story 1 - リアルタイムモデル一覧取得 (Priority: P1)
+### User Story 1 - キャッシュ更新とモデル一覧表示 (Priority: P1)
 
-DevOpsエンジニアは、複数のLLMプロバイダーから利用可能なモデル一覧を取得し、現在のモデルラインナップを把握する。
+DevOpsエンジニアは、複数のLLMプロバイダーから利用可能なモデル一覧を取得してキャッシュに保存し（`update`コマンド）、保存されたデータを表示する（`list`コマンド）ことで、現在のモデルラインナップを把握する。
 
 **Why this priority**: システムの基盤機能であり、すべての機能がこれに依存する。この機能単体でも「現在利用可能なモデルの把握」という価値を提供できる。
 
-**Independent Test**: `uvx llm-discovery list` を実行して、全プロバイダーのモデル一覧が表示されることで検証可能。オフラインキャッシュの存在確認も独立してテストできる。
+**Independent Test**: `uvx llm-discovery update` でキャッシュを作成し、`uvx llm-discovery list` で表示されることで検証可能。オフラインキャッシュの存在確認も独立してテストできる。
 
 **Acceptance Scenarios**:
 
-1. **Given** 初回実行時、**When** `uvx llm-discovery list` を実行、**Then** OpenAI、Google（Google AI StudioまたはVertex AI）、AnthropicのモデルがAPI/手動データから取得され、TOML形式でキャッシュに保存される
-2. **Given** キャッシュが存在する状態、**When** オフライン環境で `uvx llm-discovery list` を実行、**Then** キャッシュからモデル一覧が表示される
-3. **Given** API障害発生中、**When** モデル一覧を取得、**Then** 明確なエラーメッセージが表示され、処理が終了する（ゼロ以外の終了コードで終了）
-4. **Given** 一部のプロバイダーでAPI障害、**When** モデル一覧を取得、**Then** 明確なエラーメッセージが表示され、処理が終了する（部分成功での継続は行わない）
-5. **Given** GOOGLE_GENAI_USE_VERTEXAI=trueとGOOGLE_APPLICATION_CREDENTIALSが設定されている、**When** `uvx llm-discovery list` を実行、**Then** Vertex AI経由でGoogleのモデル一覧が取得される
-6. **Given** GOOGLE_GENAI_USE_VERTEXAI=trueだがGOOGLE_APPLICATION_CREDENTIALSが未設定、**When** `uvx llm-discovery list` を実行、**Then** 明確なエラーメッセージ（環境変数の設定方法と認証情報の取得手順を含む）が表示され、処理が終了する
+1. **Given** 初回実行時、**When** `uvx llm-discovery update` を実行、**Then** OpenAI、Google（Google AI StudioまたはVertex AI）、AnthropicのモデルがAPI/手動データから取得され、TOML形式でキャッシュに保存される。プロバイダー別モデル数、総数、キャッシュパスが表示される（例: "OpenAI: 15, Google: 20, Anthropic: 7 / Total: 42 / Cached to: ~/.cache/llm-discovery/models_cache.toml"）
+2. **Given** キャッシュが存在する状態、**When** `uvx llm-discovery update` を実行、**Then** 最新のモデルデータでキャッシュが更新され、更新後のプロバイダー別モデル数、総数、キャッシュパスが表示される
+3. **Given** キャッシュが存在する状態、**When** オフライン環境で `uvx llm-discovery list` を実行、**Then** キャッシュからモデル一覧が表形式で表示される
+4. **Given** キャッシュが存在しない状態、**When** `uvx llm-discovery list` を実行、**Then** 明確なエラーメッセージ「No cached data available. Please run 'llm-discovery update' first to fetch model data.」が表示され、処理が終了する（ゼロ以外の終了コード）
+5. **Given** API障害発生中、**When** `uvx llm-discovery update` を実行、**Then** 明確なエラーメッセージが表示され、処理が終了する（ゼロ以外の終了コードで終了）
+6. **Given** 一部のプロバイダーでAPI障害、**When** `uvx llm-discovery update` を実行、**Then** 明確なエラーメッセージが表示され、処理が終了する（部分成功での継続は行わない）
+7. **Given** GOOGLE_GENAI_USE_VERTEXAI=trueとGOOGLE_APPLICATION_CREDENTIALSが設定されている、**When** `uvx llm-discovery update` を実行、**Then** Vertex AI経由でGoogleのモデル一覧が取得される
+8. **Given** GOOGLE_GENAI_USE_VERTEXAI=trueだがGOOGLE_APPLICATION_CREDENTIALSが未設定、**When** `uvx llm-discovery update` を実行、**Then** 明確なエラーメッセージ（環境変数の設定方法と認証情報の取得手順を含む）が表示され、処理が終了する
 
 ---
 
@@ -76,9 +88,9 @@ MLOpsエンジニアは、定期的にモデル一覧を取得し、前回から
 
 **Acceptance Scenarios**:
 
-1. **Given** 前回のスナップショットが存在する状態、**When** `uvx llm-discovery list --detect-changes` を実行、**Then** 新規追加されたモデルと削除されたモデルが検出され、changes.jsonに記録される
+1. **Given** 前回のスナップショットが存在する状態、**When** `uvx llm-discovery update --detect-changes` を実行、**Then** 新規追加されたモデルと削除されたモデルが検出され、changes.jsonに記録される。変更タイプ別のカウントと各変更のモデルID/名前がグループ化されて画面に表示される（例: "Added models (3): openai/gpt-4.5, google/gemini-2.0, anthropic/claude-3.5-opus / Removed models (1): openai/gpt-3.5-turbo-0301"）
 2. **Given** 新モデルが検出された状態、**When** 変更検知が完了、**Then** CHANGELOG.mdに日付付きで変更内容が自動追記される
-3. **Given** 初回実行時（前回データなし）、**When** `uvx llm-discovery list --detect-changes` を実行、**Then** 「前回データが存在しないため差分検出不可」というメッセージが表示され、現在のデータがベースラインとして保存される
+3. **Given** 初回実行時（前回データなし）、**When** `uvx llm-discovery update --detect-changes` を実行、**Then** 「前回データが存在しないため差分検出不可」というメッセージが表示され、現在のデータがベースラインとして保存される
 4. **Given** 30日以上前のスナップショット、**When** スナップショット管理が実行、**Then** デフォルトの保持期間を超えたスナップショットが自動削除される
 
 ---
@@ -130,6 +142,9 @@ DevOpsエンジニアは、GitHub ActionsのワークフローにLLMモデル監
 - **FR-012**: システムは、GitHub Actions cronやsystemd timer等の監視機能実装例をドキュメントで提供しなければならない
 - **FR-013**: システムは、typerフレームワークを使用したCLIインターフェースを提供しなければならない
 - **FR-014**: システムは、Python APIとして同等の機能をプログラムから利用可能にしなければならない
+- **FR-024**: システムは、`update`コマンドを提供し、APIからモデルデータを取得してキャッシュに保存しなければならない。updateコマンドは表示機能を持たず、プロバイダー別モデル数、総数、キャッシュパスのみを出力する（例: "OpenAI: 15, Google: 20, Anthropic: 7 / Total: 42 / Cached to: ~/.cache/llm-discovery/models_cache.toml"）。責任の分離原則に準拠する
+- **FR-025**: システムは、`list`コマンドを提供し、キャッシュからモデルデータを読み込んで表形式で表示しなければならない。listコマンドはキャッシュが存在しない場合、明確なエラーメッセージ「No cached data available. Please run 'llm-discovery update' first to fetch model data.」を表示してゼロ以外の終了コードで終了する
+- **FR-026**: システムは、`update`コマンドに`--detect-changes`オプションを提供し、変更検知機能を実行しなければならない。変更が検出された場合、変更タイプ別のカウントと各変更のモデルID/名前をグループ化して画面に表示し（例: "Added models (3): openai/gpt-4.5, google/gemini-2.0, ..."）、changes.jsonとCHANGELOG.mdに記録する
 - **FR-015**: システムは、uvxによるインストール不要の即座実行をサポートしなければならない
 - **FR-016**: システムは、非同期API（asyncio）を使用して複数プロバイダーからの並行取得を実現しなければならない
 - **FR-017**: システムは、API障害時に明確なエラーメッセージを表示して処理を終了しなければならない（フォールバック禁止）
@@ -152,7 +167,7 @@ DevOpsエンジニアは、GitHub ActionsのワークフローにLLMモデル監
 
 ### Measurable Outcomes
 
-- **SC-001**: ユーザーは、インストール不要で `uvx llm-discovery list` を実行して即座にモデル一覧を取得できる
+- **SC-001**: ユーザーは、インストール不要で `uvx llm-discovery update` を実行してモデルデータを取得し、`uvx llm-discovery list` で即座にモデル一覧を表示できる
 - **SC-002**: ユーザーは、パッケージのインストールから初回実行まで5分以内に完了できる（従来のpip installを使用する場合）
 - **SC-003**: ユーザーは、1つのコマンド実行で新モデル検知から結果の確認まで完結できる
 - **SC-004**: ユーザーは、10行以内のYAML設定でCI/CDパイプラインにモデル監視を統合できる
@@ -168,7 +183,8 @@ DevOpsエンジニアは、GitHub ActionsのワークフローにLLMモデル監
 ### Phase 1 (MVP - Week 1-2)
 - マルチプロバイダー対応のモデル取得機能
 - TOML/JSON/CSV形式でのエクスポート
-- 基本的なCLIインターフェース（list、exportコマンド）
+- 基本的なCLIインターフェース（update、list、exportコマンド）
+- updateとlistの責任分離（update=Write、list=Read）
 - uvx対応とPyPI配布準備
 - 厳格なエラーハンドリング（API障害時・部分失敗時は明確なエラーメッセージで終了）
 
@@ -205,6 +221,7 @@ DevOpsエンジニアは、GitHub ActionsのワークフローにLLMモデル監
 - **監視デーモン・定期実行機能**: 常駐プロセスとしての動作はサポートしない（CI/CDやcronでの実装例を提供）
 - **モデルのフィルタリング・検索機能**: 複雑な条件でのモデル絞り込みは初期バージョンでは未対応
 - **モデルメタデータの詳細管理**: 価格情報、トークン制限等の詳細情報の構造化管理は将来的な拡張
+- **特定プロバイダーのみの更新機能**: Phase 1では全プロバイダー一括更新のみをサポート。`--provider`オプションによる特定プロバイダーのみの更新は、需要を見極めた上でPhase 2以降の拡張候補として検討
 
 ### Complementary Tools
 

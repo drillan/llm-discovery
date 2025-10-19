@@ -5,6 +5,32 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+- New `update` command for fetching and caching models from all providers
+  - Displays summary: provider counts, total models, and cache path
+  - Supports all error handling from original `list` command (API failures, partial failures, authentication errors)
+  - Automatically recovers from corrupted cache by fetching fresh data
+
+### Changed
+- **BREAKING CHANGE**: `list` command is now read-only (cache display only)
+  - No longer fetches from APIs automatically
+  - Shows clear error message when cache doesn't exist: "No cached data available. Please run 'llm-discovery update' first to fetch model data."
+  - Requires running `update` command first to populate cache
+  - Removed `--detect-changes` option (moved to `update` command in future release)
+
+### Migration Guide
+If you were using `llm-discovery list` to fetch and display models:
+```bash
+# Old workflow
+llm-discovery list
+
+# New workflow
+llm-discovery update  # Fetch and cache models
+llm-discovery list    # Display cached models
+```
+
 ## [0.1.0] - 2025-10-19
 
 ### Added

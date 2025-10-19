@@ -1,0 +1,78 @@
+# CLI Contract: llm-discovery list (Modified)
+
+command: llm-discovery list
+
+description: |
+  Display cached model data in table format.
+  This command performs READ operations only and does NOT fetch from APIs.
+  Responsibility: Cache display (Read operation) - Article XII (Destructive Refactoring) compliance.
+
+  BREAKING CHANGE: Removed automatic API fallback and --detect-changes option.
+  Users must run 'llm-discovery update' first to populate the cache.
+
+options:
+  none: "--detect-changes option has been removed (moved to update command)"
+
+output:
+  success:
+    format: "Table format + Total count"
+    example: |
+      ┌─────────────┬──────────────────────┬─────────┬─────────────────────┐
+      │ Provider    │ Model ID             │ Source  │ Fetched At          │
+      ├─────────────┼──────────────────────┼─────────┼─────────────────────┤
+      │ openai      │ gpt-4                │ api     │ 2025-10-19 10:30:15 │
+      │ openai      │ gpt-3.5-turbo        │ api     │ 2025-10-19 10:30:15 │
+      │ google      │ gemini-pro           │ api     │ 2025-10-19 10:30:16 │
+      │ anthropic   │ claude-3-opus        │ manual  │ 2025-10-19 10:30:17 │
+      └─────────────┴──────────────────────┴─────────┴─────────────────────┘
+
+      Total models: 42
+    components:
+      - table: "Rich table with columns: Provider, Model ID, Source, Fetched At"
+      - total: "Total models: {count}"
+
+error_outputs:
+  cache_not_found:
+    message: "No cached data available. Please run 'llm-discovery update' first to fetch model data."
+    exit_code: 1
+
+  cache_corrupted:
+    message: "Cache file is corrupted: {cache_path}\n\nParse error: {parse_error}\n\nPlease run 'llm-discovery update' to rebuild the cache."
+    exit_code: 1
+
+exit_codes:
+  0: Success
+  1: Cache not found or corrupted
+
+environment_variables:
+  optional:
+    - LLM_DISCOVERY_CACHE_DIR: "~/.cache/llm-discovery"
+
+requirements:
+  FR-025: List command provides cache display functionality (Read operation only)
+  C002: Error bypass prohibition
+  C008: Documentation integrity (error message must guide users to run update command)
+
+examples:
+  - command: "llm-discovery list"
+    description: "Display models from cache"
+    condition: "Cache exists"
+    output: |
+      [Table with model data]
+      Total models: 42
+
+  - command: "llm-discovery list"
+    description: "Attempt to display when cache doesn't exist"
+    condition: "Cache does not exist"
+    output: "No cached data available. Please run 'llm-discovery update' first to fetch model data."
+    exit_code: 1
+
+migration_notes: |
+  Breaking changes from previous version:
+  1. Removed --detect-changes option (moved to 'update' command)
+  2. No automatic API fallback when cache is missing
+  3. Users MUST run 'update' command before 'list' command
+  
+  Migration path:
+  - Old workflow: llm-discovery list
+  - New workflow: llm-discovery update && llm-discovery list
