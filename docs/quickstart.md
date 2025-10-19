@@ -154,7 +154,7 @@ All export formats include data source information:
 
 Example JSON export with data source info:
 
-```json
+```text
 {
   "metadata": {
     "version": "1.0",
