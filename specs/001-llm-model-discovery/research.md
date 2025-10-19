@@ -952,7 +952,7 @@ jobs:
       run: uv python install ${{ matrix.python-version }}
 
     - name: Install dependencies
-      run: uv sync --all-extras
+      run: uv sync --all-extras --all-groups
 
     - name: Run ruff
       run: uv run ruff check .

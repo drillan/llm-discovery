@@ -88,11 +88,12 @@ asyncio.run(main())
 
 ## Documentation
 
-For detailed documentation, see:
+For detailed documentation, visit our documentation site or see:
 
-- [Quickstart Guide](specs/001-llm-model-discovery/quickstart.md)
-- [API Reference](specs/001-llm-model-discovery/contracts/python-api.md)
-- [CLI Reference](specs/001-llm-model-discovery/contracts/cli-interface.md)
+- [Quick Start Guide](docs/quickstart.md)
+- [Installation Guide](docs/installation.md)
+- [API Reference](specs/001-llm-model-discovery/contracts/python-api.md) (Technical Contract)
+- [CLI Reference](specs/001-llm-model-discovery/contracts/cli-interface.md) (Technical Contract)
 
 ## Development
 
@@ -104,10 +105,10 @@ git clone https://github.com/drillan/llm-discovery.git
 cd llm-discovery
 
 # Install with development dependencies
-uv sync --all-extras
+uv sync --all-extras --all-groups
 
 # Run tests
-pytest
+uv run pytest
 
 # Run linting
 ruff check .

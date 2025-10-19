@@ -41,7 +41,7 @@ This project adheres to a code of conduct. By participating, you are expected to
 
 ```bash
 # Install dependencies with development extras
-uv sync --all-extras
+uv sync --all-extras --all-groups
 
 # Verify installation
 uv run pytest --version
