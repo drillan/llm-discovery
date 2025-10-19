@@ -40,8 +40,9 @@ jobs:
           mkdir -p temp_output
 
           # Run CLI to fetch models and export to JSON
-          # This will use API keys if available, otherwise use Anthropic manual data
-          uv run llm-discovery update || true
+          # Note: This will fail-fast if any configured provider fails
+          # Ensure API keys in GitHub Secrets are valid and not expired
+          uv run llm-discovery update
           uv run llm-discovery export --format json --output temp_output/providers.json
 
       - name: Add metadata to JSON
