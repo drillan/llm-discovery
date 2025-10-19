@@ -1,17 +1,143 @@
 [project]
 name = "llm-discovery"
-version = "0.0.1"
-description = "Add your description here"
+version = "0.1.0"
+description = "LLM model discovery and tracking system for real-time monitoring of available models across multiple providers"
 readme = "README.md"
 authors = [
     { name = "driller", email = "eleshis@gmail.com" }
 ]
 requires-python = ">=3.13"
-dependencies = []
+license = { text = "MIT" }
+keywords = ["llm", "ai", "model-discovery", "openai", "anthropic", "google", "cli", "monitoring"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+]
+
+dependencies = [
+    # CLI & Output
+    "typer>=0.15.0",
+    "rich>=13.0.0",
+
+    # Data Validation
+    "pydantic>=2.0.0",
+
+    # API Clients
+    "openai>=1.0.0",
+    "google-generativeai>=0.8.0",
+    "google-cloud-aiplatform>=1.70.0",
+
+    # TOML Processing
+    "tomli-w>=1.2.0",
+
+    # Utilities
+    "platformdirs>=4.0.0",
+    "httpx>=0.27.0",
+    "PyYAML>=6.0.0",
+]
 
 [project.scripts]
-llm-discovery = "llm_discovery:main"
+llm-discovery = "llm_discovery.cli.main:app"
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0.0",
+    "pytest-cov>=6.0.0",
+    "pytest-asyncio>=0.24.0",
+    "ruff>=0.8.0",
+    "mypy>=1.13.0",
+]
 
 [build-system]
-requires = ["uv_build>=0.8.15,<0.9.0"]
-build-backend = "uv_build"
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.pytest.ini_options]
+minversion = "8.0"
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+addopts = [
+    "--cov=llm_discovery",
+    "--cov-report=term-missing:skip-covered",
+    "--cov-report=html",
+    "--cov-report=xml",
+    "--cov-fail-under=90",
+    "--strict-markers",
+    "--strict-config",
+    "-ra",
+]
+markers = [
+    "slow: marks tests as slow (deselect with '-m \"not slow\"')",
+    "integration: integration tests",
+    "contract: contract tests",
+    "unit: unit tests",
+    "edge: edge case tests",
+]
+
+[tool.coverage.run]
+source = ["llm_discovery"]
+omit = [
+    "*/tests/*",
+    "*/__pycache__/*",
+    "*/site-packages/*",
+]
+
+[tool.coverage.report]
+precision = 2
+show_missing = true
+skip_covered = false
+fail_under = 90
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "raise AssertionError",
+    "raise NotImplementedError",
+    "if __name__ == .__main__.:",
+    "if TYPE_CHECKING:",
+]
+
+[tool.ruff]
+target-version = "py313"
+line-length = 100
+
+[tool.ruff.lint]
+select = [
+    "E",  # pycodestyle errors
+    "W",  # pycodestyle warnings
+    "F",  # pyflakes
+    "I",  # isort
+    "N",  # pep8-naming
+    "UP", # pyupgrade
+    "B",  # flake8-bugbear
+    "C4", # flake8-comprehensions
+    "PL", # pylint
+]
+ignore = [
+    "E501",  # line too long (handled by formatter)
+    "PLR0913",  # too many arguments
+]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**/*.py" = [
+    "PLR2004",  # magic value comparison
+    "S101",  # use of assert
+]
+
+[tool.mypy]
+python_version = "3.13"
+strict = true
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = true
+disallow_any_generics = true
+check_untyped_defs = true
+no_implicit_optional = true
+warn_redundant_casts = true
+warn_unused_ignores = true
+warn_no_return = true

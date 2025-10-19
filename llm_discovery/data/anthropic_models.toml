@@ -1,0 +1,31 @@
+# Anthropic Models Static Data
+# This file contains manually maintained model information for Anthropic,
+# as they do not provide a public API for model listing.
+#
+# Last updated: 2025-10-19
+
+version = "1.0.0"
+
+[[models]]
+name = "claude-sonnet-4-5-20250929"
+display_name = "Claude Sonnet 4.5"
+release_date = "2025-09-29"
+description = "Advanced reasoning and analysis model with improved performance"
+input_price_per_million = 3.00
+output_price_per_million = 15.00
+
+[[models]]
+name = "claude-haiku-4-5"
+display_name = "Claude Haiku 4.5"
+release_date = "2025-01-01"
+description = "Fast and efficient model for quick responses"
+input_price_per_million = 0.80
+output_price_per_million = 4.00
+
+[[models]]
+name = "claude-opus-4-1"
+display_name = "Claude Opus 4.1"
+release_date = "2024-11-01"
+description = "Most capable model for complex tasks requiring deep thinking"
+input_price_per_million = 15.00
+output_price_per_million = 75.00

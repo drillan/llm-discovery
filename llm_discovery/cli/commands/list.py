@@ -1,0 +1,204 @@
+"""List command for displaying models."""
+
+import asyncio
+import json
+import sys
+from datetime import datetime, timezone
+from pathlib import Path
+
+import typer
+
+from llm_discovery.cli.output import console, create_models_table, display_error
+from llm_discovery.exceptions import (
+    AuthenticationError,
+    CacheCorruptedError,
+    CacheNotFoundError,
+    PartialFetchError,
+    ProviderFetchError,
+)
+from llm_discovery.models import ChangeType
+from llm_discovery.models.config import Config
+from llm_discovery.services.changelog_generator import ChangelogGenerator
+from llm_discovery.services.discovery import DiscoveryService
+
+
+def list_command(
+    detect_changes: bool = typer.Option(
+        False,
+        "--detect-changes",
+        help="Detect changes from previous snapshot",
+    ),
+) -> None:
+    """List available models from all providers.
+
+    Fetches models from OpenAI, Google, and Anthropic providers.
+    Results are cached locally for offline use.
+    """
+    try:
+        # Load configuration
+        config = Config.from_env()
+        service = DiscoveryService(config)
+
+        providers = []  # Initialize providers list
+        models = []  # Initialize models list
+
+        # Try to load from cache first
+        try:
+            console.print("[dim]Loading from cache...[/dim]")
+            models = service.get_cached_models()
+            console.print(
+                f"[dim](Loaded from cache: {config.llm_discovery_cache_dir / 'models_cache.toml'})[/dim]"
+            )
+            # Load providers from cache for change detection
+            providers = service.cache_service.load_cache()
+        except (CacheNotFoundError, CacheCorruptedError) as e:
+            if isinstance(e, CacheCorruptedError):
+                console.print(
+                    "[yellow]Warning: Cache file is corrupted. Fetching fresh data from APIs...[/yellow]"
+                )
+            else:
+                console.print("[dim]Fetching models from APIs...[/dim]")
+
+            # Fetch from APIs
+            try:
+                providers = asyncio.run(service.fetch_all_models())
+
+                # Save to cache
+                service.save_to_cache(providers)
+                console.print(
+                    f"[dim]Cached to: {config.llm_discovery_cache_dir / 'models_cache.toml'}[/dim]"
+                )
+
+                # Extract all models
+                models = []
+                for provider in providers:
+                    models.extend(provider.models)
+
+            except PartialFetchError as e:
+                display_error(
+                    "Partial failure during model fetch.",
+                    f"Successful providers: {', '.join(e.successful_providers)}\n"
+                    f"Failed providers: {', '.join(e.failed_providers)}\n\n"
+                    "To ensure data consistency, processing has been aborted.\n"
+                    "Please resolve the issue with the failed provider and retry.",
+                )
+                raise typer.Exit(1)
+
+            except ProviderFetchError as e:
+                display_error(
+                    f"Failed to fetch models from {e.provider_name} API.",
+                    f"Cause: {e.cause}\n\n"
+                    "Suggested actions:\n"
+                    "  1. Check your internet connection\n"
+                    "  2. Verify API keys are set correctly\n"
+                    "  3. Check provider status pages\n"
+                    "  4. Retry the command later",
+                )
+                raise typer.Exit(1)
+
+            except AuthenticationError as e:
+                display_error(
+                    f"Authentication failed for {e.provider_name}.",
+                    f"Details: {e.details}\n\n"
+                    "Please check your API keys and credentials.",
+                )
+                raise typer.Exit(2)
+
+        # Handle change detection
+        if detect_changes:
+            # Get list of snapshots
+            snapshots = service.snapshot_service.list_snapshots()
+
+            if len(snapshots) < 1:
+                # No previous snapshot - save current as baseline
+                snapshot_id = service.snapshot_service.save_snapshot(providers)
+                console.print(
+                    "[yellow]No previous snapshot found. Saving current state as baseline.[/yellow]"
+                )
+                console.print(
+                    "Next run with --detect-changes will detect changes from this baseline.\n"
+                )
+                console.print(f"[dim]Snapshot ID: {snapshot_id}[/dim]")
+            else:
+                # Load previous snapshot and detect changes
+                previous_snapshot_id, _ = snapshots[0]
+                previous_snapshot = service.snapshot_service.load_snapshot(previous_snapshot_id)
+
+                # Create current snapshot
+                from llm_discovery.models import Snapshot
+                current_snapshot = Snapshot(providers=providers)
+
+                # Detect changes
+                changes = service.change_detector.detect_changes(
+                    previous_snapshot, current_snapshot
+                )
+
+                if changes:
+                    console.print("[bold green]Changes detected![/bold green]\n")
+
+                    # Group changes by type
+                    added = [c for c in changes if c.change_type == ChangeType.ADDED]
+                    removed = [c for c in changes if c.change_type == ChangeType.REMOVED]
+
+                    if added:
+                        console.print(f"[green]Added models ({len(added)}):[/green]")
+                        for change in added:
+                            console.print(f"  {change.provider_name}/{change.model_id}")
+
+                    if removed:
+                        console.print(f"\n[red]Removed models ({len(removed)}):[/red]")
+                        for change in removed:
+                            console.print(f"  {change.provider_name}/{change.model_id}")
+
+                    # Save changes.json
+                    changes_file = config.llm_discovery_cache_dir / "changes.json"
+                    changes_data = {
+                        "previous_snapshot_id": str(previous_snapshot.snapshot_id),
+                        "current_snapshot_id": str(current_snapshot.snapshot_id),
+                        "detected_at": datetime.now(timezone.utc).isoformat(),
+                        "changes": [
+                            {
+                                "type": c.change_type.value,
+                                "model_id": c.model_id,
+                                "model_name": c.model_name,
+                                "provider_name": c.provider_name,
+                            }
+                            for c in changes
+                        ],
+                    }
+                    changes_file.write_text(json.dumps(changes_data, indent=2), encoding="utf-8")
+
+                    # Update CHANGELOG.md
+                    changelog_file = config.llm_discovery_cache_dir / "CHANGELOG.md"
+                    changelog_gen = ChangelogGenerator(changelog_file)
+                    changelog_gen.append_to_changelog(changes, datetime.now(timezone.utc))
+
+                    console.print(f"\n[dim]Details saved to:[/dim]")
+                    console.print(f"[dim]  - {changes_file}[/dim]")
+                    console.print(f"[dim]  - {changelog_file}[/dim]")
+
+                    # Save new snapshot
+                    service.snapshot_service.save_snapshot(providers)
+                else:
+                    console.print("[dim]No changes detected.[/dim]")
+
+                # Cleanup old snapshots
+                deleted = service.snapshot_service.cleanup_old_snapshots()
+                if deleted > 0:
+                    console.print(f"\n[dim]Cleaned up {deleted} old snapshot(s)[/dim]")
+
+        # Display results
+        if models:
+            if not detect_changes:  # Only show table if not detecting changes
+                table = create_models_table(models)
+                console.print(table)
+            console.print(f"\n[bold]Total models: {len(models)}[/bold]")
+        else:
+            console.print("[yellow]No models found.[/yellow]")
+
+    except ValueError as e:
+        display_error(str(e))
+        raise typer.Exit(1)
+    except Exception as e:
+        display_error(f"Unexpected error: {str(e)}")
+        raise typer.Exit(1)
