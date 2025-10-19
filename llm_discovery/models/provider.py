@@ -177,6 +177,12 @@ class CacheMetadata(BaseModel):
     version: str = Field(..., description="Cache format version (semantic versioning)")
     created_at: datetime = Field(..., description="Cache creation timestamp")
     last_updated: datetime = Field(..., description="Last update timestamp")
+    data_source_type: str | None = Field(
+        default=None, description="Data source type (api or prebuilt)"
+    )
+    data_source_timestamp: datetime | None = Field(
+        default=None, description="Data source timestamp"
+    )
 
     @field_validator("version")
     @classmethod
@@ -190,10 +196,12 @@ class CacheMetadata(BaseModel):
                 raise ValueError("Version parts must be numeric")
         return v
 
-    @field_validator("created_at", "last_updated")
+    @field_validator("created_at", "last_updated", "data_source_timestamp")
     @classmethod
-    def validate_utc_timezone(cls, v: datetime) -> datetime:
+    def validate_utc_timezone(cls, v: datetime | None) -> datetime | None:
         """Ensure datetime is in UTC."""
+        if v is None:
+            return None
         if v.tzinfo is None:
             return v.replace(tzinfo=UTC)
         return v.astimezone(UTC)

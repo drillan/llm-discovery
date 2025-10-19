@@ -4,15 +4,21 @@ import json
 from datetime import UTC, datetime
 from typing import Any
 
-from llm_discovery.models import Model
+from llm_discovery.models import DataSourceInfo, Model
 
 
-def export_json(models: list[Model], *, indent: int = 2) -> str:
+def export_json(
+    models: list[Model],
+    *,
+    indent: int = 2,
+    data_source_info: DataSourceInfo | None = None,
+) -> str:
     """Export models to JSON format (CI/CD optimized).
 
     Args:
         models: List of models to export
         indent: Indentation width (default: 2)
+        data_source_info: Optional data source information
 
     Returns:
         JSON string
@@ -39,14 +45,22 @@ def export_json(models: list[Model], *, indent: int = 2) -> str:
             }
         )
 
-    # Create CI/CD-optimized structure
+    # Create CI/CD-optimized structure with data source info
+    metadata: dict[str, Any] = {
+        "version": "1.0",
+        "generated_at": datetime.now(UTC).isoformat(),
+        "total_models": len(models),
+        "providers": list(providers_dict.keys()),
+    }
+
+    # Add data source information if available (FR-042)
+    if data_source_info:
+        metadata["data_source"] = data_source_info.source_type.value
+        metadata["source_timestamp"] = data_source_info.timestamp.isoformat()
+        metadata["data_age_hours"] = round(data_source_info.age_hours, 2)
+
     output = {
-        "metadata": {
-            "version": "1.0",
-            "generated_at": datetime.now(UTC).isoformat(),
-            "total_models": len(models),
-            "providers": list(providers_dict.keys()),
-        },
+        "metadata": metadata,
         "models": providers_dict,
     }
 

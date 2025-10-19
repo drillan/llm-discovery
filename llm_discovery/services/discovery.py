@@ -8,7 +8,7 @@ from llm_discovery.exceptions import (
     PrebuiltDataNotFoundError,
     ProviderFetchError,
 )
-from llm_discovery.models import FetchStatus, Model, ProviderSnapshot
+from llm_discovery.models import DataSourceInfo, FetchStatus, Model, ProviderSnapshot
 from llm_discovery.models.config import Config
 from llm_discovery.services.cache import CacheService
 from llm_discovery.services.change_detector import ChangeDetector
@@ -131,13 +131,36 @@ class DiscoveryService:
         """
         return self.cache_service.get_cached_models()
 
-    def save_to_cache(self, providers: list[ProviderSnapshot]) -> None:
-        """Save provider snapshots to cache.
+    def get_data_source_info(self) -> "DataSourceInfo | None":
+        """Get data source information from cache.
+
+        Returns:
+            DataSourceInfo object if available, None otherwise
+
+        Raises:
+            CacheNotFoundError: If cache doesn't exist
+            CacheCorruptedError: If cache is corrupted
+        """
+        return self.cache_service.get_data_source_info()
+
+    def save_to_cache(
+        self,
+        providers: list[ProviderSnapshot],
+        data_source_type: str | None = None,
+        data_source_timestamp: datetime | None = None,
+    ) -> None:
+        """Save provider snapshots to cache with data source info.
 
         Args:
             providers: Provider snapshots to cache
+            data_source_type: Data source type (api or prebuilt)
+            data_source_timestamp: Data source timestamp
         """
-        self.cache_service.save_cache(providers)
+        self.cache_service.save_cache(
+            providers,
+            data_source_type=data_source_type,
+            data_source_timestamp=data_source_timestamp,
+        )
 
     def has_api_keys(self) -> bool:
         """Check if any API keys are configured.
