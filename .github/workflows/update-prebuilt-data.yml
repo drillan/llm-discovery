@@ -39,11 +39,29 @@ jobs:
           # Create output directory
           mkdir -p temp_output
 
-          # Run CLI to fetch models and export to JSON
+          # Fetch models and export raw ProviderSnapshot data
           # Note: This will fail-fast if any configured provider fails
           # Ensure API keys in GitHub Secrets are valid and not expired
-          uv run llm-discovery update
-          uv run llm-discovery export --format json --output temp_output/providers.json
+          uv run python -c "
+          import asyncio
+          import json
+          from llm_discovery import DiscoveryClient
+          from llm_discovery.models.config import Config
+
+          async def main():
+              config = Config.from_env()
+              client = DiscoveryClient(config)
+              providers = await client.fetch_all_models()
+
+              # Export ProviderSnapshot list as JSON
+              with open('temp_output/providers.json', 'w') as f:
+                  data = {'providers': [p.model_dump(mode='json') for p in providers]}
+                  json.dump(data, f)
+
+              print(f'Fetched {len(providers)} providers')
+
+          asyncio.run(main())
+          "
 
       - name: Add metadata to JSON
         run: |
