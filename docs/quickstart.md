@@ -201,7 +201,8 @@ Changes are recorded in:
 
 ## Next Steps
 
-- [API Reference](api-reference.md): Detailed Python API documentation
-- [CLI Reference](cli-reference.md): Complete CLI command reference
-- [Advanced Usage](advanced-usage.md): CI/CD integration and advanced scenarios
-- [Troubleshooting](troubleshooting.md): Common issues and solutions
+For more detailed documentation:
+
+- **API Reference**: See technical contract at `specs/001-llm-model-discovery/contracts/python-api.md`
+- **CLI Reference**: See technical contract at `specs/001-llm-model-discovery/contracts/cli-interface.md`
+- **Contributing**: See `CONTRIBUTING.md` in the repository root for development guidelines

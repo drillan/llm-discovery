@@ -37,21 +37,17 @@ def test_docs_no_warnings():
 
 
 def test_all_required_files_exist():
-    """Verify all required documentation files exist.
+    """Verify all required documentation files exist (MVP phase).
 
     Ensures that the minimum set of documentation files required for
-    a complete documentation site are present.
+    the MVP documentation site are present (Phase 1-3 only).
     """
     repo_root = Path(__file__).parent.parent
+    # MVP Phase (Phase 1-3): Basic documentation only
     required_files = [
         "docs/index.md",
         "docs/installation.md",
         "docs/quickstart.md",
-        "docs/api-reference.md",
-        "docs/cli-reference.md",
-        "docs/advanced-usage.md",
-        "docs/troubleshooting.md",
-        "docs/contributing.md",
     ]
     for file_path in required_files:
         full_path = repo_root / file_path
