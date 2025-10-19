@@ -1,6 +1,5 @@
 """Tests for package initialization."""
 
-import pytest
 
 
 class TestPackageInit:

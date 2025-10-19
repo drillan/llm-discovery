@@ -1,6 +1,5 @@
 """Tests for custom exceptions."""
 
-import pytest
 
 from llm_discovery.exceptions import (
     AuthenticationError,
