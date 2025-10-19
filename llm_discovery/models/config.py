@@ -104,3 +104,15 @@ class Config(BaseModel):
                 f"Cache directory is not writable: {self.llm_discovery_cache_dir}"
             )
         return self
+
+    def has_any_api_keys(self) -> bool:
+        """Check if any API keys are configured.
+
+        Returns:
+            True if at least one API key is configured (OpenAI, Google AI Studio, or Vertex AI)
+        """
+        return bool(
+            self.openai_api_key
+            or self.google_api_key
+            or self.google_genai_use_vertexai
+        )
