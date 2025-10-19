@@ -28,7 +28,7 @@ jobs:
 
       - name: Install package in editable mode
         run: |
-          uv sync
+          uv sync --all-groups --all-extras
 
       - name: Verify version consistency (CHK025)
         run: |
