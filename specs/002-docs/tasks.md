@@ -82,23 +82,23 @@ description: "Task list for Documentation System implementation"
 
 ### Implementation for User Story 2
 
-- [ ] T021 [P] [US2] Create docs/api-reference.md with DiscoveryClient class documentation from specs/001-llm-model-discovery/contracts/python-api.md
-- [ ] T022 [US2] Add Config class documentation to docs/api-reference.md
-- [ ] T023 [US2] Add ProviderSnapshot class documentation to docs/api-reference.md
-- [ ] T024 [US2] Add ModelInfo class documentation to docs/api-reference.md
-- [ ] T025 [US2] Add async/await usage examples to docs/api-reference.md (multiple use cases)
-- [ ] T026 [US2] Integrate data formats (JSON, CSV, YAML, Markdown, TOML) from specs/001-llm-model-discovery/contracts/data-formats.md into docs/api-reference.md
-- [ ] T027 [US2] Add Admonitions to docs/api-reference.md (note for Pydantic v2, tip for async best practices)
-- [ ] T028 [P] [US2] Create docs/cli-reference.md with update command documentation from specs/001-llm-model-discovery/contracts/cli-interface.md
-- [ ] T029 [US2] Add list command documentation to docs/cli-reference.md
-- [ ] T030 [US2] Add export command documentation to docs/cli-reference.md with all format examples
-- [ ] T031 [US2] Add command output examples to docs/cli-reference.md (table format, JSON format)
-- [ ] T032 [US2] Add Admonitions to docs/cli-reference.md (important for required env vars, warning for rate limits)
-- [ ] T033 [US2] Update docs/index.md toctree to include Reference section (api-reference, cli-reference)
-- [ ] T034 [US2] Run make html and verify all US2 pages build without errors
-- [ ] T035 [US2] Run make linkcheck and fix any broken links in US2 pages
-- [ ] T036 [US2] Verify contracts integrity: compare docs/api-reference.md with specs/001-llm-model-discovery/contracts/python-api.md for consistency
-- [ ] T037 [US2] Verify contracts integrity: compare docs/cli-reference.md with specs/001-llm-model-discovery/contracts/cli-interface.md for consistency
+- [x] T021 [P] [US2] Create docs/api-reference.md with DiscoveryClient class documentation from specs/001-llm-model-discovery/contracts/python-api.md
+- [x] T022 [US2] Add Config class documentation to docs/api-reference.md
+- [x] T023 [US2] Add ProviderSnapshot class documentation to docs/api-reference.md
+- [x] T024 [US2] Add ModelInfo class documentation to docs/api-reference.md
+- [x] T025 [US2] Add async/await usage examples to docs/api-reference.md (multiple use cases)
+- [x] T026 [US2] Integrate data formats (JSON, CSV, YAML, Markdown, TOML) from specs/001-llm-model-discovery/contracts/data-formats.md into docs/api-reference.md
+- [x] T027 [US2] Add Admonitions to docs/api-reference.md (note for Pydantic v2, tip for async best practices)
+- [x] T028 [P] [US2] Create docs/cli-reference.md with update command documentation from specs/001-llm-model-discovery/contracts/cli-interface.md
+- [x] T029 [US2] Add list command documentation to docs/cli-reference.md
+- [x] T030 [US2] Add export command documentation to docs/cli-reference.md with all format examples
+- [x] T031 [US2] Add command output examples to docs/cli-reference.md (table format, JSON format)
+- [x] T032 [US2] Add Admonitions to docs/cli-reference.md (important for required env vars, warning for rate limits)
+- [x] T033 [US2] Update docs/index.md toctree to include Reference section (api-reference, cli-reference)
+- [x] T034 [US2] Run make html and verify all US2 pages build without errors
+- [x] T035 [US2] Run make linkcheck and fix any broken links in US2 pages
+- [x] T036 [US2] Verify contracts integrity: compare docs/api-reference.md with specs/001-llm-model-discovery/contracts/python-api.md for consistency
+- [x] T037 [US2] Verify contracts integrity: compare docs/cli-reference.md with specs/001-llm-model-discovery/contracts/cli-interface.md for consistency
 
 **Checkpoint**: At this point, User Stories 1 AND 2 should both work independently - developers can reference detailed API/CLI documentation
 
@@ -112,22 +112,22 @@ description: "Task list for Documentation System implementation"
 
 ### Implementation for User Story 3
 
-- [ ] T038 [P] [US3] Create docs/advanced-usage.md with GitHub Actions integration example (complete workflow file)
-- [ ] T039 [US3] Add GitLab CI integration example to docs/advanced-usage.md
-- [ ] T040 [US3] Add provider filtering implementation example to docs/advanced-usage.md (Python API with filter logic)
-- [ ] T041 [US3] Add custom error handling implementation example to docs/advanced-usage.md
-- [ ] T042 [US3] Add Vertex AI setup guide to docs/advanced-usage.md (GCP credentials, env vars)
-- [ ] T043 [US3] Add Admonitions to docs/advanced-usage.md (tip for CI/CD best practices, caution for rate limits)
-- [ ] T044 [P] [US3] Create docs/troubleshooting.md with authentication errors section from specs/001-llm-model-discovery/contracts/error-handling.md
-- [ ] T045 [US3] Add network errors section to docs/troubleshooting.md (causes and solutions)
-- [ ] T046 [US3] Add rate limit errors section to docs/troubleshooting.md (detection and mitigation)
-- [ ] T047 [US3] Add cache-related issues section to docs/troubleshooting.md (cache location, clearing cache)
-- [ ] T048 [US3] Add FAQ section to docs/troubleshooting.md (common questions and answers)
-- [ ] T049 [US3] Add Admonitions to docs/troubleshooting.md (warning for API key security, important for error logs)
-- [ ] T050 [US3] Update docs/index.md toctree to include Guides section (advanced-usage, troubleshooting)
-- [ ] T051 [US3] Run make html and verify all US3 pages build without errors
-- [ ] T052 [US3] Run make linkcheck and fix any broken links in US3 pages
-- [ ] T053 [US3] Verify contracts integrity: compare docs/troubleshooting.md with specs/001-llm-model-discovery/contracts/error-handling.md for consistency
+- [x] T038 [P] [US3] Create docs/advanced-usage.md with GitHub Actions integration example (complete workflow file)
+- [x] T039 [US3] Add GitLab CI integration example to docs/advanced-usage.md
+- [x] T040 [US3] Add provider filtering implementation example to docs/advanced-usage.md (Python API with filter logic)
+- [x] T041 [US3] Add custom error handling implementation example to docs/advanced-usage.md
+- [x] T042 [US3] Add Vertex AI setup guide to docs/advanced-usage.md (GCP credentials, env vars)
+- [x] T043 [US3] Add Admonitions to docs/advanced-usage.md (tip for CI/CD best practices, caution for rate limits)
+- [x] T044 [P] [US3] Create docs/troubleshooting.md with authentication errors section from specs/001-llm-model-discovery/contracts/error-handling.md
+- [x] T045 [US3] Add network errors section to docs/troubleshooting.md (causes and solutions)
+- [x] T046 [US3] Add rate limit errors section to docs/troubleshooting.md (detection and mitigation)
+- [x] T047 [US3] Add cache-related issues section to docs/troubleshooting.md (cache location, clearing cache)
+- [x] T048 [US3] Add FAQ section to docs/troubleshooting.md (common questions and answers)
+- [x] T049 [US3] Add Admonitions to docs/troubleshooting.md (warning for API key security, important for error logs)
+- [x] T050 [US3] Update docs/index.md toctree to include Guides section (advanced-usage, troubleshooting)
+- [x] T051 [US3] Run make html and verify all US3 pages build without errors
+- [x] T052 [US3] Run make linkcheck and fix any broken links in US3 pages
+- [x] T053 [US3] Verify contracts integrity: compare docs/troubleshooting.md with specs/001-llm-model-discovery/contracts/error-handling.md for consistency
 
 **Checkpoint**: All basic, reference, and advanced user stories should now be independently functional
 

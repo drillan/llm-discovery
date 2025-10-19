@@ -26,7 +26,6 @@ installation
 quickstart
 ```
 
-<!--
 ## Reference
 
 ```{toctree}
@@ -45,6 +44,8 @@ cli-reference
 
 advanced-usage
 troubleshooting
-contributing
 ```
+
+<!--
+contributing
 -->
