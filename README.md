@@ -19,10 +19,7 @@ LLM model discovery and tracking system for real-time monitoring of available mo
 ### Method 1: uvx (No Installation Required - Recommended)
 
 ```bash
-# Fetch and cache models
-uvx llm-discovery update
-
-# Display cached models
+# Display models using prebuilt data (no API keys required)
 uvx llm-discovery list
 ```
 
@@ -48,6 +45,20 @@ uvx llm-discovery export --format json --output models.json
 
 The data source and timestamp are displayed in the output, showing whether data comes from API or prebuilt sources.
 
+#### Output Example
+
+| Provider | Model ID | Model Name | Source |
+|----------|----------|------------|--------|
+| openai | gpt-4 | gpt-4 | api |
+| openai | gpt-3.5-turbo | gpt-3.5-turbo | api |
+| openai | dall-e-3 | dall-e-3 | api |
+| google | gemini-2.5-flash | Gemini 2.5 Flash | api |
+| google | gemini-2.5-pro-preview-03-25 | Gemini 2.5 Pro Preview 03-25 | api |
+| google | gemini-2.5-flash-lite-preview-06-17 | Gemini 2.5 Flash-Lite Preview 06-17 | api |
+| anthropic | claude-sonnet-4-5-20250929 | Claude Sonnet 4.5 | manual |
+| anthropic | claude-haiku-4-5 | Claude Haiku 4.5 | manual |
+| anthropic | claude-opus-4-1 | Claude Opus 4.1 | manual |
+
 ### With API Keys (Real-time Data)
 
 Set up API keys for the providers you want to use:
@@ -62,6 +73,16 @@ export GOOGLE_API_KEY="AIza..."
 # Google Vertex AI (alternative to AI Studio)
 export GOOGLE_GENAI_USE_VERTEXAI=true
 export GOOGLE_APPLICATION_CREDENTIALS="/path/to/gcp-credentials.json"
+```
+
+Then fetch and cache models from the providers:
+
+```bash
+# Fetch and cache models from all providers
+uvx llm-discovery update
+
+# Display cached models
+uvx llm-discovery list
 ```
 
 ### Basic Usage
