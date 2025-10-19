@@ -41,7 +41,7 @@ jobs:
 
           # Run CLI to fetch models and export to JSON
           # This will use API keys if available, otherwise use Anthropic manual data
-          uv run llm-discovery update --no-cache || true
+          uv run llm-discovery update || true
           uv run llm-discovery export --format json --output temp_output/providers.json
 
       - name: Add metadata to JSON

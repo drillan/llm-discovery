@@ -27,7 +27,7 @@ jobs:
 
       - name: Install package in editable mode
         run: |
-          uv pip install -e . --system
+          uv sync
 
       - name: Verify version consistency (CHK025)
         run: |
@@ -73,7 +73,7 @@ jobs:
       - name: Verify CLI version output (CHK015, CHK022)
         run: |
           # Check CLI version command works
-          llm-discovery --version
+          uv run llm-discovery --version
 
           # Verify version matches package version
           python3 -c "
@@ -83,7 +83,7 @@ jobs:
 
           # Get CLI version output
           result = subprocess.run(
-              ['llm-discovery', '--version'],
+              ['uv', 'run', 'llm-discovery', '--version'],
               capture_output=True,
               text=True
           )
