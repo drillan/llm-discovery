@@ -73,9 +73,9 @@ jobs:
       - name: Check for changes
         id: check_changes
         run: |
-          # Check if file exists and has changes
-          if [ ! -f data/prebuilt/models.json ]; then
-            # First run - file doesn't exist yet
+          # Check if file is tracked in git
+          if ! git ls-files --error-unmatch data/prebuilt/models.json > /dev/null 2>&1; then
+            # File is untracked (first run)
             echo "changed=true" >> $GITHUB_OUTPUT
           elif git diff --quiet data/prebuilt/models.json; then
             # File exists and no changes
