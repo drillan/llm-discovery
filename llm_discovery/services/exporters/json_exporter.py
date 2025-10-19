@@ -1,7 +1,8 @@
 """JSON exporter for CI/CD integration."""
 
 import json
-from datetime import datetime
+from datetime import UTC, datetime
+from typing import Any
 
 from llm_discovery.models import Model
 
@@ -23,7 +24,7 @@ def export_json(models: list[Model], *, indent: int = 2) -> str:
         raise ValueError("models cannot be empty")
 
     # Group models by provider
-    providers_dict: dict[str, list[dict]] = {}
+    providers_dict: dict[str, list[dict[str, Any]]] = {}
     for model in models:
         if model.provider_name not in providers_dict:
             providers_dict[model.provider_name] = []
@@ -42,7 +43,7 @@ def export_json(models: list[Model], *, indent: int = 2) -> str:
     output = {
         "metadata": {
             "version": "1.0",
-            "generated_at": datetime.utcnow().isoformat() + "Z",
+            "generated_at": datetime.now(UTC).isoformat(),
             "total_models": len(models),
             "providers": list(providers_dict.keys()),
         },

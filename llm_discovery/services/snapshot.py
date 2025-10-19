@@ -1,9 +1,9 @@
 """Snapshot service for change tracking."""
 
 import json
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
-from uuid import UUID, uuid4
+from uuid import UUID
 
 from llm_discovery.exceptions import SnapshotNotFoundError
 from llm_discovery.models import ProviderSnapshot, Snapshot
@@ -154,7 +154,7 @@ class SnapshotService:
         Returns:
             Number of snapshots deleted
         """
-        cutoff_date = datetime.now(timezone.utc) - timedelta(days=self.retention_days)
+        cutoff_date = datetime.now(UTC) - timedelta(days=self.retention_days)
         deleted_count = 0
 
         for snapshot_id, timestamp in self.list_snapshots():

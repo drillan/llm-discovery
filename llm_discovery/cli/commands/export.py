@@ -1,6 +1,6 @@
 """Export command for multi-format export."""
 
-import sys
+from collections.abc import Callable
 from pathlib import Path
 
 import typer
@@ -8,6 +8,7 @@ import typer
 from llm_discovery.cli.output import console, display_error
 from llm_discovery.constants import SUPPORTED_EXPORT_FORMATS
 from llm_discovery.exceptions import CacheNotFoundError
+from llm_discovery.models import Model
 from llm_discovery.models.config import Config
 from llm_discovery.services.discovery import DiscoveryService
 from llm_discovery.services.exporters import (
@@ -64,7 +65,7 @@ def export_command(
             raise typer.Exit(1)
 
         # Export based on format
-        exporters = {
+        exporters: dict[str, Callable[[list[Model]], str]] = {
             "json": export_json,
             "csv": export_csv,
             "yaml": export_yaml,
@@ -86,7 +87,7 @@ def export_command(
                 console.print(
                     f"[green]Exported {len(models)} models to {output} ({format.upper()} format)[/green]"
                 )
-            except IOError as e:
+            except OSError as e:
                 display_error(
                     f"Failed to write to file '{output}'.",
                     f"Cause: {str(e)}\n\n"

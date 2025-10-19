@@ -231,3 +231,22 @@ CLAUDE.md
 /playgrounds
 /temp
 /tmp
+
+# VS Code settings
+.vscode/
+
+# credential files
+.cred
+.creds
+.secrets
+.env
+*.pem
+*.key
+*.p12
+*.pfx
+*credentials*.json
+*service-account*.json
+*gcp*.json
+*aws*.json
+.aws/
+.gcp/

@@ -1,7 +1,7 @@
 """Cache service for TOML persistence."""
 
 import tomllib
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 
 import tomli_w
@@ -36,9 +36,24 @@ class CacheService:
         self.cache_dir.mkdir(parents=True, exist_ok=True)
 
         # Create cache metadata
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
+
+        # Preserve created_at if cache already exists
+        if self.cache_file.exists():
+            try:
+                with open(self.cache_file, "rb") as f:
+                    existing_cache = tomllib.load(f)
+                created_at = datetime.fromisoformat(
+                    existing_cache["metadata"]["created_at"]
+                )
+            except (tomllib.TOMLDecodeError, KeyError, ValueError):
+                # If we can't read the existing cache, use current time
+                created_at = now
+        else:
+            created_at = now
+
         metadata = CacheMetadata(
-            version=TOML_CACHE_VERSION, created_at=now, last_updated=now
+            version=TOML_CACHE_VERSION, created_at=created_at, last_updated=now
         )
 
         # Create cache object

@@ -1,6 +1,6 @@
 """Google model fetcher (AI Studio and Vertex AI)."""
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 import google.generativeai as genai
 from google.api_core import exceptions as google_exceptions
@@ -38,7 +38,7 @@ class GoogleFetcher(BaseFetcher):
             # AI Studio mode
             if not config.google_api_key:
                 raise ValueError("GOOGLE_API_KEY is required for AI Studio")
-            genai.configure(api_key=config.google_api_key)
+            genai.configure(api_key=config.google_api_key)  # type: ignore[attr-defined]
 
     @property
     def provider_name(self) -> str:
@@ -57,9 +57,9 @@ class GoogleFetcher(BaseFetcher):
         """
         try:
             # List models using the generative AI SDK
-            models_list = genai.list_models()
+            models_list = genai.list_models()  # type: ignore[attr-defined]
             models = []
-            fetched_at = datetime.now(timezone.utc)
+            fetched_at = datetime.now(UTC)
 
             for model_data in models_list:
                 # Filter for generative models

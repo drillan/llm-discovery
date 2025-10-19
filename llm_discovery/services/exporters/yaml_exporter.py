@@ -1,5 +1,7 @@
 """YAML exporter for configuration files."""
 
+from typing import Any
+
 import yaml
 
 from llm_discovery.models import Model
@@ -21,7 +23,7 @@ def export_yaml(models: list[Model]) -> str:
         raise ValueError("models cannot be empty")
 
     # Group models by provider
-    providers_dict: dict[str, list[dict]] = {}
+    providers_dict: dict[str, list[dict[str, Any]]] = {}
     for model in models:
         if model.provider_name not in providers_dict:
             providers_dict[model.provider_name] = []

@@ -61,13 +61,20 @@ uvx llm-discovery list --detect-changes
 ```python
 import asyncio
 from llm_discovery import DiscoveryClient
+from llm_discovery.models.config import Config
 
 async def main():
-    client = DiscoveryClient()
-    models = await client.fetch_models()
+    # Load configuration from environment variables
+    config = Config.from_env()
+    client = DiscoveryClient(config)
 
-    for model in models:
-        print(f"{model.provider_name}/{model.model_id}: {model.model_name}")
+    # Fetch models from all providers
+    provider_snapshots = await client.fetch_all_models()
+
+    # Display all models
+    for provider in provider_snapshots:
+        for model in provider.models:
+            print(f"{model.provider_name}/{model.model_id}: {model.model_name}")
 
 asyncio.run(main())
 ```
@@ -86,7 +93,7 @@ For detailed documentation, see:
 
 ```bash
 # Clone the repository
-git clone https://github.com/yourusername/llm-discovery.git
+git clone https://github.com/drillan/llm-discovery.git
 cd llm-discovery
 
 # Install with development dependencies

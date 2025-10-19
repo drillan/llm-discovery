@@ -1,5 +1,7 @@
 """TOML exporter for interoperability."""
 
+from typing import Any
+
 import tomli_w
 
 from llm_discovery.models import Model
@@ -22,7 +24,7 @@ def export_toml(models: list[Model]) -> str:
 
     # Group models by provider
     providers_list = []
-    providers_dict: dict[str, list[dict]] = {}
+    providers_dict: dict[str, list[dict[str, Any]]] = {}
 
     for model in models:
         if model.provider_name not in providers_dict:

@@ -1,6 +1,6 @@
 """OpenAI model fetcher."""
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from openai import AsyncOpenAI, OpenAIError
 
@@ -43,7 +43,7 @@ class OpenAIFetcher(BaseFetcher):
         try:
             response = await self.client.models.list()
             models = []
-            fetched_at = datetime.now(timezone.utc)
+            fetched_at = datetime.now(UTC)
 
             for model_data in response.data:
                 models.append(

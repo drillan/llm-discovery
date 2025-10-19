@@ -1,6 +1,6 @@
 """Core data models for llm-discovery."""
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from enum import Enum
 from typing import Any
 from uuid import UUID, uuid4
@@ -42,8 +42,8 @@ class Model(BaseModel):
     def validate_utc_timezone(cls, v: datetime) -> datetime:
         """Ensure datetime is in UTC."""
         if v.tzinfo is None:
-            return v.replace(tzinfo=timezone.utc)
-        return v.astimezone(timezone.utc)
+            return v.replace(tzinfo=UTC)
+        return v.astimezone(UTC)
 
 
 class ProviderType(str, Enum):
@@ -78,9 +78,8 @@ class Provider(BaseModel):
         if self.name == ProviderType.GOOGLE:
             if self.google_backend is None:
                 raise ValueError("Google provider must specify google_backend")
-        else:
-            if self.google_backend is not None:
-                raise ValueError("google_backend can only be set for Google provider")
+        elif self.google_backend is not None:
+            raise ValueError("google_backend can only be set for Google provider")
         return self
 
 
@@ -108,8 +107,8 @@ class ProviderSnapshot(BaseModel):
     def validate_utc_timezone(cls, v: datetime) -> datetime:
         """Ensure datetime is in UTC."""
         if v.tzinfo is None:
-            return v.replace(tzinfo=timezone.utc)
-        return v.astimezone(timezone.utc)
+            return v.replace(tzinfo=UTC)
+        return v.astimezone(UTC)
 
 
 class Snapshot(BaseModel):
@@ -118,7 +117,7 @@ class Snapshot(BaseModel):
     model_config = {"frozen": True}
 
     snapshot_id: UUID = Field(default_factory=uuid4, description="Unique snapshot ID")
-    timestamp: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    timestamp: datetime = Field(default_factory=lambda: datetime.now(UTC))
     providers: list[ProviderSnapshot] = Field(
         default_factory=list, description="Provider snapshots"
     )
@@ -136,8 +135,8 @@ class Snapshot(BaseModel):
     def validate_utc_timezone(cls, v: datetime) -> datetime:
         """Ensure datetime is in UTC."""
         if v.tzinfo is None:
-            return v.replace(tzinfo=timezone.utc)
-        return v.astimezone(timezone.utc)
+            return v.replace(tzinfo=UTC)
+        return v.astimezone(UTC)
 
 
 class ChangeType(str, Enum):
@@ -158,7 +157,7 @@ class Change(BaseModel):
     model_name: str = Field(..., description="Model name")
     provider_name: str = Field(..., description="Provider name")
     detected_at: datetime = Field(
-        default_factory=lambda: datetime.now(timezone.utc), description="Detection timestamp"
+        default_factory=lambda: datetime.now(UTC), description="Detection timestamp"
     )
     previous_snapshot_id: UUID = Field(..., description="Previous snapshot ID")
     current_snapshot_id: UUID = Field(..., description="Current snapshot ID")
@@ -168,8 +167,8 @@ class Change(BaseModel):
     def validate_utc_timezone(cls, v: datetime) -> datetime:
         """Ensure datetime is in UTC."""
         if v.tzinfo is None:
-            return v.replace(tzinfo=timezone.utc)
-        return v.astimezone(timezone.utc)
+            return v.replace(tzinfo=UTC)
+        return v.astimezone(UTC)
 
 
 class CacheMetadata(BaseModel):
@@ -196,8 +195,8 @@ class CacheMetadata(BaseModel):
     def validate_utc_timezone(cls, v: datetime) -> datetime:
         """Ensure datetime is in UTC."""
         if v.tzinfo is None:
-            return v.replace(tzinfo=timezone.utc)
-        return v.astimezone(timezone.utc)
+            return v.replace(tzinfo=UTC)
+        return v.astimezone(UTC)
 
 
 class Cache(BaseModel):

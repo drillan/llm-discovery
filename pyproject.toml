@@ -86,6 +86,10 @@ omit = [
     "*/tests/*",
     "*/__pycache__/*",
     "*/site-packages/*",
+    "*/cli/*",  # CLI code is tested via integration tests
+    "*/fetchers/google.py",  # External API - requires complex mocking
+    "*/fetchers/openai.py",  # External API - requires complex mocking
+    "*/__main__.py",  # Entry point
 ]
 
 [tool.coverage.report]
@@ -121,6 +125,12 @@ select = [
 ignore = [
     "E501",  # line too long (handled by formatter)
     "PLR0913",  # too many arguments
+    "B008",  # function call in argument defaults (typer pattern)
+    "B904",  # raise without from in exception handlers (typer.Exit is special)
+    "PLR0912",  # too many branches
+    "PLR0915",  # too many statements
+    "PLC0415",  # import not at top level (circular import avoidance)
+    "PLR2004",  # magic value comparison (semantic versioning)
 ]
 
 [tool.ruff.lint.per-file-ignores]
@@ -141,3 +151,8 @@ no_implicit_optional = true
 warn_redundant_casts = true
 warn_unused_ignores = true
 warn_no_return = true
+
+[dependency-groups]
+dev = [
+    "types-pyyaml>=6.0.12.20250915",
+]

@@ -1,7 +1,7 @@
 """Anthropic model fetcher (manual data)."""
 
 import tomllib
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 
 from llm_discovery.exceptions import ProviderFetchError
@@ -42,7 +42,7 @@ class AnthropicFetcher(BaseFetcher):
                 data = tomllib.load(f)
 
             models = []
-            fetched_at = datetime.now(timezone.utc)
+            fetched_at = datetime.now(UTC)
 
             for model_data in data.get("models", []):
                 models.append(

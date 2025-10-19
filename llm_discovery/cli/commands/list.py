@@ -2,9 +2,7 @@
 
 import asyncio
 import json
-import sys
-from datetime import datetime, timezone
-from pathlib import Path
+from datetime import UTC, datetime
 
 import typer
 
@@ -155,7 +153,7 @@ def list_command(
                     changes_data = {
                         "previous_snapshot_id": str(previous_snapshot.snapshot_id),
                         "current_snapshot_id": str(current_snapshot.snapshot_id),
-                        "detected_at": datetime.now(timezone.utc).isoformat(),
+                        "detected_at": datetime.now(UTC).isoformat(),
                         "changes": [
                             {
                                 "type": c.change_type.value,
@@ -171,9 +169,9 @@ def list_command(
                     # Update CHANGELOG.md
                     changelog_file = config.llm_discovery_cache_dir / "CHANGELOG.md"
                     changelog_gen = ChangelogGenerator(changelog_file)
-                    changelog_gen.append_to_changelog(changes, datetime.now(timezone.utc))
+                    changelog_gen.append_to_changelog(changes, datetime.now(UTC))
 
-                    console.print(f"\n[dim]Details saved to:[/dim]")
+                    console.print("\n[dim]Details saved to:[/dim]")
                     console.print(f"[dim]  - {changes_file}[/dim]")
                     console.print(f"[dim]  - {changelog_file}[/dim]")
 

@@ -1,7 +1,7 @@
 """Discovery service for fetching models from multiple providers."""
 
 import asyncio
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from llm_discovery.exceptions import PartialFetchError, ProviderFetchError
 from llm_discovery.models import FetchStatus, Model, ProviderSnapshot
@@ -59,15 +59,17 @@ class DiscoveryService:
         provider_names.append("anthropic")
 
         # Execute all fetches in parallel
-        results = await asyncio.gather(*tasks, return_exceptions=True)
+        results: list[ProviderSnapshot | BaseException] = await asyncio.gather(
+            *tasks, return_exceptions=True
+        )
 
         # Process results
-        snapshots = []
+        snapshots: list[ProviderSnapshot] = []
         successful_providers = []
         failed_providers = []
 
-        for provider_name, result in zip(provider_names, results):
-            if isinstance(result, Exception):
+        for provider_name, result in zip(provider_names, results, strict=False):
+            if isinstance(result, BaseException):
                 failed_providers.append(provider_name)
             else:
                 snapshots.append(result)
@@ -87,7 +89,9 @@ class DiscoveryService:
 
         return snapshots
 
-    async def _fetch_from_provider(self, fetcher) -> ProviderSnapshot:
+    async def _fetch_from_provider(
+        self, fetcher: AnthropicFetcher | GoogleFetcher | OpenAIFetcher
+    ) -> ProviderSnapshot:
         """Fetch models from a single provider.
 
         Args:
@@ -102,7 +106,8 @@ class DiscoveryService:
                 provider_name=fetcher.provider_name,
                 models=models,
                 fetch_status=FetchStatus.SUCCESS,
-                fetched_at=datetime.now(timezone.utc),
+                fetched_at=datetime.now(UTC),
+                error_message=None,
             )
         except Exception as e:
             # Re-raise to be caught by gather

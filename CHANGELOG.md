@@ -1,0 +1,96 @@
+# Changelog
+
+All notable changes to this project will be documented in this file.
+
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
+and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+## [0.1.0] - 2025-10-19
+
+### Added
+
+#### Core Features
+- Real-time model discovery from multiple LLM providers (OpenAI, Google AI Studio/Vertex AI, Anthropic)
+- Multi-format export support (JSON, CSV, YAML, Markdown, TOML)
+- Automatic change detection and tracking over time
+- Snapshot-based versioning with 30-day retention policy
+- TOML-based caching for offline mode support
+- Python 3.13+ support with modern async/await patterns
+
+#### CLI Commands
+- `llm-discovery list` - List all available models from configured providers
+- `llm-discovery export` - Export model data in multiple formats
+- `--detect-changes` flag for tracking model additions and removals
+- Rich terminal output with beautiful tables
+
+#### Python API
+- `DiscoveryClient` - Main client for programmatic access
+- Five export functions: `export_json`, `export_csv`, `export_yaml`, `export_markdown`, `export_toml`
+- Comprehensive type hints and Pydantic models
+- Async-first API design for concurrent provider fetching
+
+#### Data Models
+- `Model` - Core model entity with validation
+- `ProviderSnapshot` - Provider-specific snapshot with fetch status
+- `Snapshot` - Complete multi-provider snapshot with UUID tracking
+- `Change` - Model change record for version tracking
+- `Cache` - TOML-based cache structure with metadata
+
+#### Services
+- `DiscoveryService` - Orchestrates parallel provider fetching with fail-fast error handling
+- `CacheService` - TOML-based persistence with automatic metadata management
+- `SnapshotService` - UUID-based snapshot management with retention policy
+- `ChangeDetector` - Detects model additions and removals between snapshots
+- `ChangelogGenerator` - Generates human-readable Markdown changelogs
+
+#### Provider Support
+- **OpenAI**: Full API integration with model metadata
+- **Google**: Dual backend support (AI Studio and Vertex AI)
+- **Anthropic**: Manual model data (Claude Sonnet 4.5, Haiku 4.5, Opus 4.1)
+
+#### Configuration
+- Environment variable-based configuration
+- Support for multiple Google backends (AI Studio / Vertex AI)
+- Configurable cache directory and retention policy
+- Automatic cache directory creation with permission validation
+
+#### Testing & Quality
+- 90.22% test coverage (84 tests, all passing)
+- Comprehensive unit, integration, and CLI tests
+- Strict mypy type checking (zero errors)
+- Ruff linting with project-specific rules
+
+#### Documentation
+- Comprehensive README with quickstart examples
+- Example scripts in `examples/` directory
+- API reference contracts
+- CLI interface documentation
+
+### Technical Details
+
+#### Architecture
+- Fail-fast error handling with partial failure detection
+- UTC-first datetime handling (Python 3.13 `datetime.UTC`)
+- Immutable Pydantic models with frozen configuration
+- Primary Data Non-Assumption Principle compliance
+
+#### Dependencies
+- Python 3.13+
+- Typer for CLI framework
+- Rich for terminal output
+- Pydantic v2 for data validation
+- OpenAI, Google GenAI, and Google Cloud AI Platform SDKs
+- TOML support via tomllib (built-in) and tomli-w
+
+#### Performance
+- Async parallel fetching from all providers
+- Cache-first operation for offline usage
+- Efficient TOML serialization
+
+### Known Limitations
+
+- Google Vertex AI requires GCP service account credentials
+- Anthropic models use manual data (no official API yet)
+- Change detection requires at least one previous snapshot
+
+[0.1.0]: https://github.com/drillan/llm-discovery/releases/tag/v0.1.0
