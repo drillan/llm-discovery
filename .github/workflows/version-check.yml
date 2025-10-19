@@ -1,0 +1,107 @@
+name: Version Consistency Check
+
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+    branches: ["**"]
+
+jobs:
+  verify-version:
+    name: Verify Version Consistency
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v4
+        with:
+          version: "latest"
+
+      - name: Install package in editable mode
+        run: |
+          uv pip install -e . --system
+
+      - name: Verify version consistency (CHK025)
+        run: |
+          python3 -c "
+          import tomllib
+          import llm_discovery
+          from pathlib import Path
+
+          # Load expected version from pyproject.toml
+          pyproject_path = Path('pyproject.toml')
+          with open(pyproject_path, 'rb') as f:
+              pyproject_data = tomllib.load(f)
+
+          expected_version = pyproject_data['project']['version']
+          actual_version = llm_discovery.__version__
+
+          # Verify versions match
+          if actual_version != expected_version:
+              print(f'❌ Version mismatch detected!')
+              print(f'   pyproject.toml: {expected_version}')
+              print(f'   __version__:    {actual_version}')
+              exit(1)
+          else:
+              print(f'✅ Version consistency verified: {actual_version}')
+          "
+
+      - name: Verify semantic versioning format (CHK049)
+        run: |
+          python3 -c "
+          import re
+          import llm_discovery
+
+          # Semantic versioning pattern
+          semver_pattern = r'^\d+\.\d+\.\d+(-[a-zA-Z0-9.]+)?(\+[a-zA-Z0-9.]+)?$'
+
+          if not re.match(semver_pattern, llm_discovery.__version__):
+              print(f'❌ Version \"{llm_discovery.__version__}\" does not follow semantic versioning')
+              exit(1)
+          else:
+              print(f'✅ Semantic versioning format verified: {llm_discovery.__version__}')
+          "
+
+      - name: Verify CLI version output (CHK015, CHK022)
+        run: |
+          # Check CLI version command works
+          llm-discovery --version
+
+          # Verify version matches package version
+          python3 -c "
+          import subprocess
+          import re
+          import llm_discovery
+
+          # Get CLI version output
+          result = subprocess.run(
+              ['llm-discovery', '--version'],
+              capture_output=True,
+              text=True
+          )
+
+          # Extract version from output
+          match = re.search(r'version (\S+)', result.stdout)
+          if not match:
+              print(f'❌ Could not extract version from CLI output: {result.stdout}')
+              exit(1)
+
+          cli_version = match.group(1)
+          package_version = llm_discovery.__version__
+
+          if cli_version != package_version:
+              print(f'❌ CLI version mismatch!')
+              print(f'   CLI output: {cli_version}')
+              print(f'   Package:    {package_version}')
+              exit(1)
+          else:
+              print(f'✅ CLI version matches package version: {cli_version}')
+          "

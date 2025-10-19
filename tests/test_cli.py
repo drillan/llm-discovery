@@ -50,6 +50,39 @@ class TestCLIVersion:
         assert result.exit_code == 0
         assert "llm-discovery" in result.stdout
 
+    def test_version_output_format(self, runner):
+        """Test --version output format matches expected pattern (CHK022)."""
+        result = runner.invoke(app, ["--version"])
+        assert result.exit_code == 0
+
+        # Expected format: "llm-discovery, version X.Y.Z"
+        import re
+
+        pattern = r"llm-discovery, version \d+\.\d+\.\d+"
+        assert re.search(
+            pattern, result.stdout
+        ), f"Version output '{result.stdout}' does not match expected format"
+
+    def test_version_matches_package(self, runner):
+        """Test CLI --version matches package __version__ (CHK015)."""
+        import llm_discovery
+
+        result = runner.invoke(app, ["--version"])
+        assert result.exit_code == 0
+
+        # Extract version from output
+        import re
+
+        match = re.search(r"version (\S+)", result.stdout)
+        assert match, f"Could not extract version from output: {result.stdout}"
+
+        cli_version = match.group(1)
+        package_version = llm_discovery.__version__
+
+        assert (
+            cli_version == package_version
+        ), f"CLI version ({cli_version}) != package version ({package_version})"
+
 
 class TestCLIExport:
     """Tests for export command."""
