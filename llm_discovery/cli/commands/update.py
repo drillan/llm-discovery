@@ -32,7 +32,13 @@ def update_command(
     """
     try:
         # Load configuration
-        config = Config.from_env()
+        try:
+            config = Config.from_env()
+        except ValueError as e:
+            # Error message from Config.from_env() is already detailed
+            display_error("Configuration Error", str(e))
+            raise typer.Exit(1)
+
         service = DiscoveryService(config)
 
         # Fetch from APIs

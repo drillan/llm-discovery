@@ -169,8 +169,11 @@ class TestCLIUpdate:
         self, runner: CliRunner, temp_cache_dir, monkeypatch
     ) -> None:
         """Test update command basic operation - fetch and cache models."""
-        # Mock API responses to avoid actual API calls
+        # Set required API keys
+        monkeypatch.setenv("OPENAI_API_KEY", "sk-test-key")
+        monkeypatch.setenv("GOOGLE_API_KEY", "test-google-key")
 
+        # Mock API responses to avoid actual API calls
         from llm_discovery.services.discovery import DiscoveryService
 
         # Create mock providers with models
@@ -210,6 +213,9 @@ class TestCLIUpdate:
         self, runner: CliRunner, setup_cache, monkeypatch
     ) -> None:
         """Test update command updates existing cache."""
+        # Set required API keys
+        monkeypatch.setenv("OPENAI_API_KEY", "sk-test-key")
+        monkeypatch.setenv("GOOGLE_API_KEY", "test-google-key")
 
         from llm_discovery.services.discovery import DiscoveryService
 
@@ -247,6 +253,10 @@ class TestCLIUpdate:
         self, runner: CliRunner, temp_cache_dir, monkeypatch
     ) -> None:
         """Test update command API failure error handling (FR-017)."""
+        # Set required API keys
+        monkeypatch.setenv("OPENAI_API_KEY", "sk-test-key")
+        monkeypatch.setenv("GOOGLE_API_KEY", "test-google-key")
+
         from llm_discovery.exceptions import ProviderFetchError
         from llm_discovery.services.discovery import DiscoveryService
 
@@ -267,6 +277,10 @@ class TestCLIUpdate:
         self, runner: CliRunner, temp_cache_dir, monkeypatch
     ) -> None:
         """Test update command partial failure error handling (FR-018)."""
+        # Set required API keys
+        monkeypatch.setenv("OPENAI_API_KEY", "sk-test-key")
+        monkeypatch.setenv("GOOGLE_API_KEY", "test-google-key")
+
         from llm_discovery.exceptions import PartialFetchError
         from llm_discovery.services.discovery import DiscoveryService
 
@@ -288,6 +302,10 @@ class TestCLIUpdate:
         self, runner: CliRunner, temp_cache_dir, monkeypatch
     ) -> None:
         """Test update command authentication error handling."""
+        # Set required API keys
+        monkeypatch.setenv("OPENAI_API_KEY", "sk-test-key")
+        monkeypatch.setenv("GOOGLE_API_KEY", "test-google-key")
+
         from llm_discovery.exceptions import AuthenticationError
         from llm_discovery.services.discovery import DiscoveryService
 
@@ -308,6 +326,9 @@ class TestCLIUpdate:
         self, runner: CliRunner, temp_cache_dir, monkeypatch
     ) -> None:
         """Test update command recovers from corrupted cache."""
+        # Set required API keys
+        monkeypatch.setenv("OPENAI_API_KEY", "sk-test-key")
+        monkeypatch.setenv("GOOGLE_API_KEY", "test-google-key")
 
         from llm_discovery.services.discovery import DiscoveryService
 
@@ -353,6 +374,10 @@ class TestCLIUpdateChangeDetection:
         self, runner: CliRunner, temp_cache_dir, monkeypatch
     ) -> None:
         """Test update --detect-changes detects model changes (FR-026)."""
+        # Set required API keys
+        monkeypatch.setenv("OPENAI_API_KEY", "sk-test-key")
+        monkeypatch.setenv("GOOGLE_API_KEY", "test-google-key")
+
         from llm_discovery.services.discovery import DiscoveryService
         from llm_discovery.services.snapshot import SnapshotService
 
@@ -385,7 +410,7 @@ class TestCLIUpdateChangeDetection:
         # Create baseline snapshot manually
         from llm_discovery.models.config import Config
 
-        config = Config.from_env()
+        config = Config.from_env(require_api_keys=False)
         snapshot_service = SnapshotService(config.llm_discovery_cache_dir)
         snapshot_service.save_snapshot(initial_providers)
 
@@ -436,6 +461,10 @@ class TestCLIUpdateChangeDetection:
         self, runner: CliRunner, temp_cache_dir, monkeypatch
     ) -> None:
         """Test update --detect-changes on first run creates baseline."""
+        # Set required API keys
+        monkeypatch.setenv("OPENAI_API_KEY", "sk-test-key")
+        monkeypatch.setenv("GOOGLE_API_KEY", "test-google-key")
+
         from llm_discovery.services.discovery import DiscoveryService
 
         mock_providers = [
@@ -475,6 +504,10 @@ class TestCLIUpdateChangeDetection:
         self, runner: CliRunner, temp_cache_dir, monkeypatch
     ) -> None:
         """Test update --detect-changes when no changes detected."""
+        # Set required API keys
+        monkeypatch.setenv("OPENAI_API_KEY", "sk-test-key")
+        monkeypatch.setenv("GOOGLE_API_KEY", "test-google-key")
+
         from llm_discovery.services.discovery import DiscoveryService
         from llm_discovery.services.snapshot import SnapshotService
 
@@ -499,7 +532,7 @@ class TestCLIUpdateChangeDetection:
 
         from llm_discovery.models.config import Config
 
-        config = Config.from_env()
+        config = Config.from_env(require_api_keys=False)
         snapshot_service = SnapshotService(config.llm_discovery_cache_dir)
         snapshot_service.save_snapshot(mock_providers)
 
@@ -519,13 +552,17 @@ class TestCLIUpdateChangeDetection:
         self, runner: CliRunner, temp_cache_dir, monkeypatch
     ) -> None:
         """Test update --detect-changes cleans up old snapshots (FR-008)."""
+        # Set required API keys
+        monkeypatch.setenv("OPENAI_API_KEY", "sk-test-key")
+        monkeypatch.setenv("GOOGLE_API_KEY", "test-google-key")
+
         from datetime import timedelta
 
         from llm_discovery.models.config import Config
         from llm_discovery.services.discovery import DiscoveryService
         from llm_discovery.services.snapshot import SnapshotService
 
-        config = Config.from_env()
+        config = Config.from_env(require_api_keys=False)
         snapshot_service = SnapshotService(config.llm_discovery_cache_dir)
 
         # Create old snapshots (35 days ago)

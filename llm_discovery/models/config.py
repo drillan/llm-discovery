@@ -30,12 +30,56 @@ class Config(BaseModel):
     )
 
     @classmethod
-    def from_env(cls) -> "Config":
+    def from_env(cls, require_api_keys: bool = True) -> "Config":
         """Create Config from environment variables.
+
+        Args:
+            require_api_keys: If True, require API keys to be set. If False, allow None.
 
         Raises:
             ValueError: If required environment variables are not set
         """
+        # Get API keys
+        openai_api_key = os.environ.get("OPENAI_API_KEY")
+        google_api_key = os.environ.get("GOOGLE_API_KEY")
+        google_use_vertexai = os.environ.get("GOOGLE_GENAI_USE_VERTEXAI", "").lower() == "true"
+        google_credentials_path = os.environ.get("GOOGLE_APPLICATION_CREDENTIALS")
+
+        # Validate API keys if required (for update command)
+        if require_api_keys:
+            missing_configs = []
+
+            # Check OpenAI
+            if not openai_api_key:
+                missing_configs.append(
+                    "1. OpenAI API Key\n"
+                    "   export OPENAI_API_KEY=sk-...\n"
+                    "   Get your API key from: https://platform.openai.com/api-keys"
+                )
+
+            # Check Google
+            if not google_api_key and not (google_use_vertexai and google_credentials_path):
+                missing_configs.append(
+                    "2. Google AI API Configuration\n"
+                    "   Option A - Google AI Studio (recommended):\n"
+                    "     export GOOGLE_API_KEY=...\n"
+                    "     Get your API key from: https://aistudio.google.com/apikey\n\n"
+                    "   Option B - Vertex AI:\n"
+                    "     export GOOGLE_GENAI_USE_VERTEXAI=true\n"
+                    "     export GOOGLE_APPLICATION_CREDENTIALS=/path/to/credentials.json\n"
+                    "     See: https://cloud.google.com/vertex-ai/docs/authentication"
+                )
+
+            # Raise error if any configs are missing
+            if missing_configs:
+                error_message = (
+                    "Required API keys not configured.\n\n"
+                    "The following API keys are required:\n\n"
+                    + "\n\n".join(missing_configs)
+                    + "\n\nPlease set the required environment variables and try again."
+                )
+                raise ValueError(error_message)
+
         # Get cache directory
         cache_dir_env = os.environ.get("LLM_DISCOVERY_CACHE_DIR")
         if cache_dir_env:
@@ -50,12 +94,12 @@ class Config(BaseModel):
         retention_days = int(retention_days_env) if retention_days_env else 30
 
         return cls(
-            openai_api_key=os.environ.get("OPENAI_API_KEY"),
-            google_api_key=os.environ.get("GOOGLE_API_KEY"),
-            google_genai_use_vertexai=os.environ.get("GOOGLE_GENAI_USE_VERTEXAI", "").lower() == "true",
+            openai_api_key=openai_api_key,
+            google_api_key=google_api_key,
+            google_genai_use_vertexai=google_use_vertexai,
             google_application_credentials=(
-                Path(os.environ["GOOGLE_APPLICATION_CREDENTIALS"])
-                if "GOOGLE_APPLICATION_CREDENTIALS" in os.environ
+                Path(google_credentials_path)
+                if google_credentials_path
                 else None
             ),
             llm_discovery_cache_dir=cache_dir,

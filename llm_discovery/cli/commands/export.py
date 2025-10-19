@@ -46,8 +46,13 @@ def export_command(
             )
             raise typer.Exit(2)
 
-        # Load configuration
-        config = Config.from_env()
+        # Load configuration (API keys not required for reading cache)
+        try:
+            config = Config.from_env(require_api_keys=False)
+        except ValueError as e:
+            display_error("Configuration error", str(e))
+            raise typer.Exit(1)
+
         service = DiscoveryService(config)
 
         # Get models from cache

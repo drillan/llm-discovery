@@ -18,8 +18,13 @@ def list_command() -> None:
     Run 'llm-discovery update' first to fetch and cache model data.
     """
     try:
-        # Load configuration
-        config = Config.from_env()
+        # Load configuration (API keys not required for reading cache)
+        try:
+            config = Config.from_env(require_api_keys=False)
+        except ValueError as e:
+            display_error("Configuration error", str(e))
+            raise typer.Exit(1)
+
         service = DiscoveryService(config)
 
         # Load from cache (FR-025: Read-only operation)
